@@ -18,7 +18,7 @@
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans">
 
-  <header class="max-w-4xl mx-auto mb-6 text-center">
+  <header class="max-w-5xl mx-auto mb-6 text-center">
     <h1 class="text-3xl font-bold text-blue-400">AI Face Attendance Portal</h1>
     <p class="text-slate-400 text-sm mt-1">Real-time facial identification & administrative dashboard</p>
     
@@ -41,7 +41,7 @@
     </div>
   </header>
 
-  <main class="max-w-4xl mx-auto">
+  <main class="max-w-5xl mx-auto">
     
     <div id="status" class="mb-6 text-xs text-center font-semibold px-4 py-2 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 max-w-md mx-auto">
       Connecting to Firebase & Loading Models...
@@ -141,56 +141,58 @@
         </div>
       </div>
 
-      <!-- Enrolled Students Table & Export -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
-        <!-- Registered Students & Student-Specific History -->
-        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex flex-col justify-between">
+      <!-- Student Specific History Grid View -->
+      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl">
+        <div class="flex flex-wrap justify-between items-center gap-4 mb-4 pb-3 border-b border-slate-700">
           <div>
-            <div class="mb-3">
-              <h3 class="text-lg font-semibold text-slate-200 mb-2">Select Student to View History</h3>
-              <select id="studentSelect" class="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded p-2 focus:outline-none focus:border-blue-500 font-mono">
-                <option value="">-- Select Registered Student --</option>
-              </select>
-            </div>
-            <div class="overflow-y-auto max-h-[200px] bg-slate-900/60 rounded-lg p-2 border border-slate-700/50">
-              <ul id="adminStudentList" class="space-y-2">
-                <li class="text-xs text-slate-500 text-center py-4">Select a student above to view record...</li>
-              </ul>
-            </div>
+            <h3 class="text-lg font-semibold text-slate-200">Student Attendance History Matrix</h3>
+            <p class="text-xs text-slate-400">Select a student to inspect period-wise attendance across recorded dates.</p>
+          </div>
+          
+          <div class="w-full sm:w-auto min-w-[240px]">
+            <select id="studentSelect" class="w-full bg-slate-900 border border-blue-500/50 text-blue-300 text-xs font-bold rounded-lg p-2.5 focus:outline-none focus:border-blue-400 font-mono shadow-inner cursor-pointer">
+              <option value="">-- Select Registered Student --</option>
+            </select>
           </div>
         </div>
 
-        <!-- Attendance Logs & Filter by Date -->
-        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex flex-col justify-between">
-          <div>
-            <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
-              <h3 class="text-lg font-semibold text-slate-200">Attendance History</h3>
-              <div class="flex items-center gap-2">
-                <button id="resetTodayBtn" class="bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 text-xs font-bold px-2.5 py-1.5 rounded transition border border-rose-500/30 cursor-pointer flex items-center gap-1">
-                  🔄 Reset Today
-                </button>
-                <button id="exportCsvBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-2.5 py-1.5 rounded transition cursor-pointer flex items-center gap-1">
-                  📥 Export
-                </button>
-              </div>
-            </div>
-
-            <!-- Date Picker Filter -->
-            <div class="mb-3 flex items-center gap-2">
-              <label class="text-xs text-slate-400 font-medium whitespace-nowrap">Filter Date:</label>
-              <input id="datePicker" type="date" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded px-2 py-1 focus:outline-none focus:border-blue-500 w-full font-mono">
-            </div>
-
-            <div class="overflow-y-auto max-h-[170px] bg-slate-900/60 rounded-lg p-2 border border-slate-700/50">
-              <ul id="adminLogList" class="space-y-2">
-                <li class="text-xs text-slate-500 text-center py-4">Loading log history...</li>
-              </ul>
-            </div>
-          </div>
+        <!-- Student Attendance Matrix Table -->
+        <div id="studentTableContainer" class="overflow-x-auto min-h-[140px] max-h-[350px]">
+          <p class="text-xs text-slate-500 text-center py-10">Select a student from the dropdown above to view their date-wise & period-wise report.</p>
         </div>
 
+        <div id="studentDeleteActionContainer" class="hidden pt-3 mt-3 border-t border-slate-700 text-right">
+          <!-- Dynamically populated delete button -->
+        </div>
       </div>
+
+      <!-- General Attendance History & Date Filter -->
+      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl">
+        <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
+          <h3 class="text-lg font-semibold text-slate-200">General Attendance Logs</h3>
+          <div class="flex items-center gap-2">
+            <button id="resetTodayBtn" class="bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 text-xs font-bold px-2.5 py-1.5 rounded transition border border-rose-500/30 cursor-pointer flex items-center gap-1">
+              🔄 Reset Today
+            </button>
+            <button id="exportCsvBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-2.5 py-1.5 rounded transition cursor-pointer flex items-center gap-1">
+              📥 Export CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Date Picker Filter -->
+        <div class="mb-3 flex items-center gap-2 max-w-xs">
+          <label class="text-xs text-slate-400 font-medium whitespace-nowrap">Filter Date:</label>
+          <input id="datePicker" type="date" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded px-2 py-1 focus:outline-none focus:border-blue-500 w-full font-mono">
+        </div>
+
+        <div class="overflow-y-auto max-h-[180px] bg-slate-900/60 rounded-lg p-2 border border-slate-700/50">
+          <ul id="adminLogList" class="space-y-2">
+            <li class="text-xs text-slate-500 text-center py-4">Loading log history...</li>
+          </ul>
+        </div>
+      </div>
+
     </section>
 
   </main>
@@ -246,7 +248,8 @@
     const statTotalStudents = document.getElementById('statTotalStudents');
     const statTodayAttendance = document.getElementById('statTodayAttendance');
     const studentSelect = document.getElementById('studentSelect');
-    const adminStudentList = document.getElementById('adminStudentList');
+    const studentTableContainer = document.getElementById('studentTableContainer');
+    const studentDeleteActionContainer = document.getElementById('studentDeleteActionContainer');
     const datePicker = document.getElementById('datePicker');
     const adminLogList = document.getElementById('adminLogList');
     const exportCsvBtn = document.getElementById('exportCsvBtn');
@@ -258,7 +261,7 @@
     let registeredStudents = []; 
     let allAttendanceLogs = [];
     let todayLogsToDelete = []; 
-    let markedToday = new Set(); // Stores "RegNo_Period" combinations for today
+    let markedToday = new Set();
     let faceMatcher = null;
     
     // PIN Configuration
@@ -645,43 +648,90 @@
     // Filter Logs by Selected Date
     datePicker.addEventListener('change', renderFilteredLogs);
 
-    // Filter Logs by Selected Student Reg No
+    // Filter & Generate Student Specific Date-wise Period Matrix Table
     studentSelect.addEventListener('change', () => {
       const selectedReg = studentSelect.value;
-      adminStudentList.innerHTML = '';
+      studentTableContainer.innerHTML = '';
+      studentDeleteActionContainer.classList.add('hidden');
+      studentDeleteActionContainer.innerHTML = '';
 
       if (!selectedReg) {
-        adminStudentList.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Select a student above to view record...</li>';
+        studentTableContainer.innerHTML = '<p class="text-xs text-slate-500 text-center py-10">Select a student from the dropdown above to view their date-wise & period-wise report.</p>';
         return;
       }
 
       const studentLogs = allAttendanceLogs.filter(log => log.regNo === selectedReg);
       const matchedStudent = registeredStudents.find(s => s.regNo === selectedReg);
 
-      if (studentLogs.length > 0) {
-        studentLogs.forEach(log => {
-          const li = document.createElement('li');
-          li.className = "flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700 text-xs font-mono text-slate-300";
-          li.innerHTML = `
-            <span>${log.regNo} <span class="text-[10px] text-blue-400 font-sans">(${log.period})</span></span>
-            <span class="text-slate-400 text-[10px]">${formatDateTime12Hour(log.time)}</span>
-          `;
-          adminStudentList.appendChild(li);
-        });
-      } else {
-        adminStudentList.innerHTML = `<li class="text-xs text-slate-500 text-center py-4">No attendance records found for ${selectedReg}.</li>`;
+      // Collect all unique dates recorded in system attendance history
+      const uniqueDates = [...new Set(allAttendanceLogs.map(log => log.time.toISOString().split('T')[0]))].sort().reverse();
+
+      if (uniqueDates.length === 0) {
+        studentTableContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-10">No attendance logs available in system yet.</p>`;
+        return;
       }
 
-      // Append Delete Option at bottom of history view
+      // Build Map for student's present periods: Map<dateString, Set<periodString>>
+      const attendanceMap = new Map();
+      studentLogs.forEach(log => {
+        const dateStr = log.time.toISOString().split('T')[0];
+        if (!attendanceMap.has(dateStr)) {
+          attendanceMap.set(dateStr, new Set());
+        }
+        attendanceMap.get(dateStr).add(log.period);
+      });
+
+      const periods = ['Period 1', 'Period 2', 'Period 3', 'Period 4', 'Period 5', 'Period 6', 'Period 7', 'Period 8'];
+
+      // Generate Period Matrix Table
+      let tableHtml = `
+        <table class="w-full text-left border-collapse text-xs font-mono">
+          <thead>
+            <tr class="bg-slate-900 text-slate-400 border-b border-slate-700 text-[11px]">
+              <th class="p-2.5 font-semibold text-slate-300">Date</th>
+              ${periods.map(p => `<th class="p-2 text-center font-semibold">${p.replace('Period ', 'P')}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-700/60 text-slate-300">
+      `;
+
+      uniqueDates.forEach(dateStr => {
+        const presentPeriods = attendanceMap.get(dateStr) || new Set();
+        const displayDate = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        });
+
+        tableHtml += `<tr class="hover:bg-slate-800/60 transition">`;
+        tableHtml += `<td class="p-2.5 font-medium whitespace-nowrap text-slate-200">${displayDate}</td>`;
+
+        periods.forEach(p => {
+          if (presentPeriods.has(p)) {
+            tableHtml += `<td class="p-2 text-center text-emerald-400 text-sm font-bold" title="${p}: Present">✔</td>`;
+          } else {
+            tableHtml += `<td class="p-2 text-center text-rose-500 text-sm font-bold opacity-75" title="${p}: Absent">❌</td>`;
+          }
+        });
+
+        tableHtml += `</tr>`;
+      });
+
+      tableHtml += `
+          </tbody>
+        </table>
+      `;
+
+      studentTableContainer.innerHTML = tableHtml;
+
+      // Render Delete Profile Action
       if (matchedStudent) {
-        const delDiv = document.createElement('div');
-        delDiv.className = "pt-2 mt-2 border-t border-slate-700 text-right";
-        delDiv.innerHTML = `
-          <button data-id="${matchedStudent.id}" id="deleteSelectedStudentBtn" class="bg-red-500/20 hover:bg-red-500/40 text-red-300 text-[10px] font-bold px-2.5 py-1 rounded transition border border-red-500/30 cursor-pointer">
+        studentDeleteActionContainer.classList.remove('hidden');
+        studentDeleteActionContainer.innerHTML = `
+          <button data-id="${matchedStudent.id}" id="deleteSelectedStudentBtn" class="bg-red-500/20 hover:bg-red-500/40 text-red-300 text-[11px] font-bold px-3 py-1.5 rounded transition border border-red-500/30 cursor-pointer">
             🗑 Delete ${selectedReg} Profile
           </button>
         `;
-        adminStudentList.appendChild(delDiv);
 
         document.getElementById('deleteSelectedStudentBtn').addEventListener('click', async (e) => {
           const studentId = e.target.getAttribute('data-id');
