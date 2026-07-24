@@ -146,7 +146,7 @@
         <div class="flex flex-wrap justify-between items-center gap-4 mb-4 pb-3 border-b border-slate-700">
           <div>
             <h3 class="text-lg font-semibold text-slate-200">Student Attendance History Matrix</h3>
-            <p class="text-xs text-slate-400">Select a student to inspect period-wise attendance across recorded dates.</p>
+            <p class="text-xs text-slate-400">Select a student to inspect or edit date-wise & period-wise records.</p>
           </div>
           
           <div class="w-full sm:w-auto min-w-[240px]">
@@ -158,11 +158,12 @@
 
         <!-- Student Attendance Matrix Table -->
         <div id="studentTableContainer" class="overflow-x-auto min-h-[140px] max-h-[350px]">
-          <p class="text-xs text-slate-500 text-center py-10">Select a student from the dropdown above to view their date-wise & period-wise report.</p>
+          <p class="text-xs text-slate-500 text-center py-10">Select a student from the dropdown above to view their report.</p>
         </div>
 
-        <div id="studentDeleteActionContainer" class="hidden pt-3 mt-3 border-t border-slate-700 text-right">
-          <!-- Dynamically populated delete button -->
+        <!-- Action Bar: Edit Attendance & Delete Profile Buttons -->
+        <div id="studentActionContainer" class="hidden pt-3 mt-3 border-t border-slate-700 flex justify-end items-center gap-3">
+          <!-- Dynamically populated buttons -->
         </div>
       </div>
 
@@ -249,7 +250,7 @@
     const statTodayAttendance = document.getElementById('statTodayAttendance');
     const studentSelect = document.getElementById('studentSelect');
     const studentTableContainer = document.getElementById('studentTableContainer');
-    const studentDeleteActionContainer = document.getElementById('studentDeleteActionContainer');
+    const studentActionContainer = document.getElementById('studentActionContainer');
     const datePicker = document.getElementById('datePicker');
     const adminLogList = document.getElementById('adminLogList');
     const exportCsvBtn = document.getElementById('exportCsvBtn');
@@ -270,7 +271,6 @@
 
     const CDN_MODELS = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
 
-    // Format time (12-hour format)
     function formatTime12Hour(dateObj) {
       return dateObj.toLocaleTimeString('en-US', {
         hour: '2-digit',
@@ -280,7 +280,6 @@
       });
     }
 
-    // Format full date-time (12-hour format)
     function formatDateTime12Hour(dateObj) {
       return dateObj.toLocaleString('en-US', {
         year: 'numeric',
@@ -293,10 +292,8 @@
       });
     }
 
-    // Set today's date into the date picker by default
     datePicker.value = new Date().toISOString().split('T')[0];
 
-    // Navigation Switcher
     navScan.addEventListener('click', () => switchView('scan'));
     navRegister.addEventListener('click', () => switchView('register'));
     navAdmin.addEventListener('click', () => {
@@ -313,7 +310,6 @@
       }
     });
 
-    // Camera On/Off Toggle Handler
     toggleCameraBtn.addEventListener('click', () => {
       if (isCameraOn) {
         stopSharedCamera();
@@ -511,7 +507,6 @@
       }
     }
 
-    // Detection Loop
     videoScan.addEventListener('play', () => {
       const canvas = faceapi.createCanvasFromMedia(videoScan);
       const wrapper = videoScan.parentElement;
@@ -544,7 +539,6 @@
       }, 300);
     });
 
-    // Registration with RegNo Pattern Validation (251FAXXXXX)
     registerBtn.addEventListener('click', async () => {
       if (!isCameraOn) return alert("Please turn on the camera first.");
 
@@ -628,12 +622,11 @@
       attendanceList.prepend(listItem);
     }
 
-    // ADMIN DASHBOARD & FILTERS
+    // ADMIN DASHBOARD & MATRIX TABLE
     function renderAdminDashboard() {
       statTotalStudents.innerText = registeredStudents.length;
       statTodayAttendance.innerText = markedToday.size;
 
-      // Populate Registered Student Dropdown
       studentSelect.innerHTML = '<option value="">-- Select Registered Student --</option>';
       registeredStudents.forEach(student => {
         const option = document.createElement('option');
@@ -645,15 +638,16 @@
       renderFilteredLogs();
     }
 
-    // Filter Logs by Selected Date
     datePicker.addEventListener('change', renderFilteredLogs);
 
-    // Filter & Generate Student Specific Date-wise Period Matrix Table
-    studentSelect.addEventListener('change', () => {
+    // Filter & Render Student Matrix Table
+    studentSelect.addEventListener('change', renderStudentMatrixTable);
+
+    function renderStudentMatrixTable() {
       const selectedReg = studentSelect.value;
       studentTableContainer.innerHTML = '';
-      studentDeleteActionContainer.classList.add('hidden');
-      studentDeleteActionContainer.innerHTML = '';
+      studentActionContainer.classList.add('hidden');
+      studentActionContainer.innerHTML = '';
 
       if (!selectedReg) {
         studentTableContainer.innerHTML = '<p class="text-xs text-slate-500 text-center py-10">Select a student from the dropdown above to view their date-wise & period-wise report.</p>';
@@ -663,7 +657,6 @@
       const studentLogs = allAttendanceLogs.filter(log => log.regNo === selectedReg);
       const matchedStudent = registeredStudents.find(s => s.regNo === selectedReg);
 
-      // Collect all unique dates recorded in system attendance history
       const uniqueDates = [...new Set(allAttendanceLogs.map(log => log.time.toISOString().split('T')[0]))].sort().reverse();
 
       if (uniqueDates.length === 0) {
@@ -671,19 +664,18 @@
         return;
       }
 
-      // Build Map for student's present periods: Map<dateString, Set<periodString>>
+      // Map: date -> Map(period -> logObject)
       const attendanceMap = new Map();
       studentLogs.forEach(log => {
         const dateStr = log.time.toISOString().split('T')[0];
         if (!attendanceMap.has(dateStr)) {
-          attendanceMap.set(dateStr, new Set());
+          attendanceMap.set(dateStr, new Map());
         }
-        attendanceMap.get(dateStr).add(log.period);
+        attendanceMap.get(dateStr).set(log.period, log);
       });
 
       const periods = ['Period 1', 'Period 2', 'Period 3', 'Period 4', 'Period 5', 'Period 6', 'Period 7', 'Period 8'];
 
-      // Generate Period Matrix Table
       let tableHtml = `
         <table class="w-full text-left border-collapse text-xs font-mono">
           <thead>
@@ -696,7 +688,7 @@
       `;
 
       uniqueDates.forEach(dateStr => {
-        const presentPeriods = attendanceMap.get(dateStr) || new Set();
+        const periodMap = attendanceMap.get(dateStr) || new Map();
         const displayDate = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric',
@@ -707,10 +699,21 @@
         tableHtml += `<td class="p-2.5 font-medium whitespace-nowrap text-slate-200">${displayDate}</td>`;
 
         periods.forEach(p => {
-          if (presentPeriods.has(p)) {
-            tableHtml += `<td class="p-2 text-center text-emerald-400 text-sm font-bold" title="${p}: Present">✔</td>`;
+          const log = periodMap.get(p);
+          if (log) {
+            tableHtml += `
+              <td class="p-2 text-center text-emerald-400 text-sm font-bold cursor-pointer hover:scale-125 transition" 
+                  title="Click to toggle status for ${p}"
+                  onclick="toggleCellAttendance('${log.id}', '${selectedReg}', '${p}', '${dateStr}', true)">
+                ✔
+              </td>`;
           } else {
-            tableHtml += `<td class="p-2 text-center text-rose-500 text-sm font-bold opacity-75" title="${p}: Absent">❌</td>`;
+            tableHtml += `
+              <td class="p-2 text-center text-rose-500 text-sm font-bold opacity-75 cursor-pointer hover:scale-125 transition" 
+                  title="Click to toggle status for ${p}"
+                  onclick="toggleCellAttendance(null, '${selectedReg}', '${p}', '${dateStr}', false)">
+                ❌
+              </td>`;
           }
         });
 
@@ -724,17 +727,24 @@
 
       studentTableContainer.innerHTML = tableHtml;
 
-      // Render Delete Profile Action
+      // Render Action Buttons (Edit Attendance & Delete Profile)
       if (matchedStudent) {
-        studentDeleteActionContainer.classList.remove('hidden');
-        studentDeleteActionContainer.innerHTML = `
-          <button data-id="${matchedStudent.id}" id="deleteSelectedStudentBtn" class="bg-red-500/20 hover:bg-red-500/40 text-red-300 text-[11px] font-bold px-3 py-1.5 rounded transition border border-red-500/30 cursor-pointer">
-            🗑 Delete ${selectedReg} Profile
+        studentActionContainer.classList.remove('hidden');
+        studentActionContainer.innerHTML = `
+          <button id="editAttendanceBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded transition border border-blue-500 cursor-pointer flex items-center gap-1">
+            ✏️ Edit Attendance
+          </button>
+          <button data-id="${matchedStudent.id}" id="deleteSelectedStudentBtn" class="bg-red-500/20 hover:bg-red-500/40 text-red-300 text-xs font-bold px-3 py-1.5 rounded transition border border-red-500/30 cursor-pointer flex items-center gap-1">
+            🗑️ Delete Profile
           </button>
         `;
 
+        document.getElementById('editAttendanceBtn').addEventListener('click', () => {
+          alert(`Instruction: Click directly on any ✔ or ❌ symbol in the table matrix above to manually flip attendance between Present and Absent for ${selectedReg}.`);
+        });
+
         document.getElementById('deleteSelectedStudentBtn').addEventListener('click', async (e) => {
-          const studentId = e.target.getAttribute('data-id');
+          const studentId = e.currentTarget.getAttribute('data-id');
           if (confirm(`Are you sure you want to delete profile for ${selectedReg}?`)) {
             await deleteDoc(doc(db, "students", studentId));
             await fetchStudentsFromFirebase();
@@ -742,11 +752,39 @@
           }
         });
       }
-    });
+    }
+
+    // Direct Toggling of Attendance Cell
+    window.toggleCellAttendance = async function(logId, regNo, period, dateStr, isPresent) {
+      const action = isPresent ? "mark ABSENT" : "mark PRESENT";
+      if (!confirm(`Do you want to ${action} for ${regNo} on ${dateStr} (${period})?`)) return;
+
+      try {
+        if (isPresent && logId) {
+          // Remove attendance entry to mark Absent
+          await deleteDoc(doc(db, "attendance", logId));
+        } else {
+          // Create attendance entry to mark Present
+          const targetDate = new Date(dateStr + 'T12:00:00');
+          await addDoc(collection(db, "attendance"), {
+            studentRegNo: regNo,
+            period: period,
+            status: "Present",
+            timestamp: targetDate
+          });
+        }
+
+        await fetchTodayLogsFromFirebase();
+        renderStudentMatrixTable();
+      } catch (err) {
+        console.error("Error editing attendance:", err);
+        alert("Failed to update attendance.");
+      }
+    };
 
     function renderFilteredLogs() {
       adminLogList.innerHTML = '';
-      const selectedDate = datePicker.value; // YYYY-MM-DD
+      const selectedDate = datePicker.value;
 
       if (!selectedDate) {
         adminLogList.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Please select a date above.</li>';
@@ -773,7 +811,6 @@
       }
     }
 
-    // Reset Today's Attendance Handler
     resetTodayBtn.addEventListener('click', async () => {
       if (todayLogsToDelete.length === 0) {
         return alert("There are no attendance logs to reset for today.");
@@ -800,7 +837,6 @@
       }
     });
 
-    // Export Filtered / All Logs to CSV
     exportCsvBtn.addEventListener('click', () => {
       if (allAttendanceLogs.length === 0) return alert("No logs available to export.");
 
