@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Face Attendance System</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- face-api.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  
+  <style>
+    .video-wrapper { position: relative; display: inline-block; }
+    canvas { position: absolute; top: 0; left: 0; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans">
+
+  <header class="max-w-4xl mx-auto mb-8 text-center">
+    <h1 class="text-3xl font-bold text-blue-400">AI Face Attendance Portal</h1>
+    <p class="text-slate-400 text-sm mt-1">Real-time facial identification powered by Firebase</p>
+  </header>
+
+  <main class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+    
+    <!-- Scanner View -->
+    <section class="bg-slate-800 p-6 rounded-xl border border-slate-700 text-center flex flex-col items-center shadow-xl">
+      <h2 class="text-xl font-semibold mb-4 text-slate-200">Scanner View</h2>
+      
+      <div id="status" class="mb-4 text-xs font-semibold px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">
+        Connecting to Firebase & Loading Models...
+      </div>
+
+      <div class="video-wrapper rounded-lg overflow-hidden border-2 border-slate-600 bg-black shadow-lg">
+        <video id="webcam" autoplay playsinline muted width="320" height="240"></video>
+      </div>
+
+      <!-- Registration Form -->
+      <div class="mt-6 w-full text-left bg-slate-900/50 p-4 rounded-lg border border-slate-700">
+        <label class="block text-xs text-slate-400 font-medium mb-1">Register Student Face</label>
+        <div class="flex gap-2">
+          <input id="studentName" type="text" placeholder="Enter Full Name" class="bg-slate-800 border border-slate-600 text-sm rounded px-3 py-2 text-white w-full focus:outline-none focus:border-blue-500">
+          <button id="registerBtn" disabled class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded transition disabled:opacity-50 cursor-pointer">
+            Enroll
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Attendance Log -->
+    <section class="bg-slate-800 p-6 rounded-xl border border-slate-700 flex flex-col shadow-xl">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold text-slate-200">Attendance Register</h2>
+        <span id="logCount" class="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded font-mono">0 logged</span>
+      </div>
+
+      <div class="flex-1 overflow-y-auto max-h-[380px] bg-slate-900/60 rounded-lg p-3 border border-slate-700/50">
+        <ul id="attendanceList" class="space-y-2">
+          <li class="text-xs text-slate-500 text-center py-6">Loading logs...</li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Firebase SDK Modules & App Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { 
+      getFirestore, 
+      collection, 
+      addDoc, 
+      getDocs, 
+      query, 
+      where, 
+      orderBy,
+      serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDr3fM0W00HigVbZXKymOP8AoUg39scc5w",
+      authDomain: "attendance-portal-16db0.firebaseapp.com",
+      projectId: "attendance-portal-16db0",
+      storageBucket: "attendance-portal-16db0.firebasestorage.app",
+      messagingSenderId: "681248103591",
+      appId: "1:681248103591:web:f4f1f03a65ad66c0ba4f82"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const video = document.getElementById('webcam');
+    const statusText = document.getElementById('status');
+    const registerBtn = document.getElementById('registerBtn');
+    const studentNameInput = document.getElementById('studentName');
+    const attendanceList = document.getElementById('attendanceList');
+    const logCount = document.getElementById('logCount');
+
+    let registeredStudents = []; 
+    let markedToday = new Set();
+    let faceMatcher = null;
+
+    const CDN_MODELS = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+
+    async function initApp() {
+      try {
+        // Load face-api AI models
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri(CDN_MODELS),
+          faceapi.nets.faceLandmark68Net.loadFromUri(CDN_MODELS),
+          faceapi.nets.faceRecognitionNet.loadFromUri(CDN_MODELS)
+        ]);
+
+        // Fetch saved student faces & attendance from Firebase
+        await fetchStudentsFromFirebase();
+        await fetchTodayLogsFromFirebase();
+
+        statusText.innerText = "Firebase Connected - Starting Camera...";
+        statusText.className = "mb-4 text-xs font-semibold px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30";
+        
+        startWebcam();
+      } catch (err) {
+        console.error(err);
+        statusText.innerText = "Error initializing app. Check console.";
+        statusText.className = "mb-4 text-xs font-semibold px-3 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/30";
+      }
+    }
+
+    // Load registered face vectors from Firestore
+    async function fetchStudentsFromFirebase() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "students"));
+        registeredStudents = [];
+
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          registeredStudents.push({
+            name: data.name,
+            descriptor: new Float32Array(data.descriptor)
+          });
+        });
+
+        if (registeredStudents.length > 0) {
+          const labeledDescriptors = registeredStudents.map(s => 
+            new faceapi.LabeledFaceDescriptors(s.name, [s.descriptor])
+          );
+          faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.45);
+        }
+      } catch (err) {
+        console.error("Error loading students:", err);
+      }
+    }
+
+    // Load today's attendance logs from Firestore
+    async function fetchTodayLogsFromFirebase() {
+      try {
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const q = query(
+          collection(db, "attendance"),
+          where("timestamp", ">=", startOfDay),
+          orderBy("timestamp", "desc")
+        );
+
+        const querySnapshot = await getDocs(q);
+        attendanceList.innerHTML = '';
+        markedToday.clear();
+
+        if (!querySnapshot.empty) {
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            markedToday.add(data.studentName);
+            const time = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
+            renderLogItem(data.studentName, time);
+          });
+          logCount.innerText = `${markedToday.size} logged`;
+        } else {
+          attendanceList.innerHTML = '<li class="text-xs text-slate-500 text-center py-6">No students logged yet today.</li>';
+        }
+      } catch (err) {
+        console.error("Error loading logs:", err);
+        attendanceList.innerHTML = '<li class="text-xs text-slate-500 text-center py-6">Ready for attendance.</li>';
+      }
+    }
+
+    function startWebcam() {
+      navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } })
+        .then(stream => {
+          video.srcObject = stream;
+          statusText.innerText = "Camera Active - Ready to Scan";
+          statusText.className = "mb-4 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+          registerBtn.disabled = false;
+        })
+        .catch(err => {
+          console.error(err);
+          statusText.innerText = "Camera Permission Denied";
+          statusText.className = "mb-4 text-xs font-semibold px-3 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/30";
+        });
+    }
+
+    // Real-time scan loop
+    video.addEventListener('play', () => {
+      const canvas = faceapi.createCanvasFromMedia(video);
+      document.querySelector('.video-wrapper').append(canvas);
+      
+      const displaySize = { width: video.width, height: video.height };
+      faceapi.matchDimensions(canvas, displaySize);
+
+      setInterval(async () => {
+        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+          .withFaceLandmarks()
+          .withFaceDescriptors();
+
+        const resizedDetections = faceapi.resizeResults(detections, displaySize);
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        faceapi.draw.drawDetections(canvas, resizedDetections);
+
+        if (faceMatcher && detections.length > 0) {
+          detections.forEach(detection => {
+            const match = faceMatcher.findBestMatch(detection.descriptor);
+            if (match.label !== 'unknown' && match.distance < 0.45) {
+              markAttendance(match.label);
+            }
+          });
+        }
+      }, 300);
+    });
+
+    // Save Student Face to Firestore
+    registerBtn.addEventListener('click', async () => {
+      const name = studentNameInput.value.trim();
+      if (!name) return alert("Please enter a student name first.");
+
+      registerBtn.innerText = "Scanning...";
+      registerBtn.disabled = true;
+
+      const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      if (detection) {
+        const descriptorArray = Array.from(detection.descriptor);
+
+        try {
+          await addDoc(collection(db, "students"), {
+            name: name,
+            descriptor: descriptorArray,
+            createdAt: serverTimestamp()
+          });
+
+          alert(`Successfully enrolled and saved ${name} to Firebase!`);
+          studentNameInput.value = '';
+          await fetchStudentsFromFirebase();
+        } catch (e) {
+          alert(`Firebase Error: ${e.message}`);
+        }
+      } else {
+        alert("No face detected! Look directly into the camera.");
+      }
+
+      registerBtn.innerText = "Enroll";
+      registerBtn.disabled = false;
+    });
+
+    // Mark Attendance in Firestore
+    async function markAttendance(studentName) {
+      if (markedToday.has(studentName)) return;
+
+      markedToday.add(studentName);
+      const now = new Date();
+      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      try {
+        await addDoc(collection(db, "attendance"), {
+          studentName: studentName,
+          status: "Present",
+          timestamp: serverTimestamp()
+        });
+
+        if (markedToday.size === 1) attendanceList.innerHTML = '';
+        renderLogItem(studentName, timeString);
+        logCount.innerText = `${markedToday.size} logged`;
+      } catch (err) {
+        console.error("Failed to mark attendance:", err);
+        markedToday.delete(studentName);
+      }
+    }
+
+    function renderLogItem(name, time) {
+      const listItem = document.createElement('li');
+      listItem.className = "flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700 text-xs text-slate-200 animate-pulse";
+      listItem.innerHTML = `
+        <span class="font-medium flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span> ${name}
+        </span>
+        <span class="text-slate-400 font-mono">${time}</span>
+      `;
+      attendanceList.prepend(listItem);
+    }
+
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+
+</body>
+</html>
