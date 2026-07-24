@@ -22,8 +22,8 @@
     <h1 class="text-3xl font-bold text-blue-400">AI Face Attendance Portal</h1>
     <p class="text-slate-400 text-sm mt-1">Real-time facial identification & administrative dashboard</p>
     
-    <!-- Mode Selection Navigation -->
-    <div class="flex flex-wrap justify-center gap-3 mt-6">
+    <!-- Mode Selection Navigation & Camera Controls -->
+    <div class="flex flex-wrap justify-center items-center gap-3 mt-6">
       <button id="navScan" class="px-5 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow-lg border border-blue-500 cursor-pointer">
         📷 Mark Attendance
       </button>
@@ -32,6 +32,11 @@
       </button>
       <button id="navAdmin" class="px-5 py-2 rounded-lg text-sm font-semibold transition bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 cursor-pointer">
         📊 Admin Dashboard
+      </button>
+      
+      <!-- Camera Toggle Button -->
+      <button id="toggleCameraBtn" class="px-4 py-2 rounded-lg text-sm font-semibold transition bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg border border-emerald-500 cursor-pointer flex items-center gap-2">
+        <span id="cameraBtnIcon">📹</span> <span id="cameraBtnText">Camera On</span>
       </button>
     </div>
   </header>
@@ -49,7 +54,7 @@
       <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 text-center flex flex-col items-center shadow-xl">
         <h2 class="text-xl font-semibold mb-4 text-slate-200">Scanner View</h2>
         <div class="video-wrapper rounded-lg overflow-hidden border-2 border-slate-600 bg-black shadow-lg">
-          <video id="webcamScan" autoplay playsinline muted width="320" height="240"></video>
+          <video id="webcamScan" autoplay playsinline muted width="320" height="240" class="brightness-110 contrast-105"></video>
         </div>
         <p class="text-xs text-slate-400 mt-4">Position face in frame to mark attendance automatically.</p>
       </div>
@@ -75,13 +80,14 @@
       <h2 class="text-xl font-semibold mb-4 text-slate-200">Enroll New Student</h2>
       
       <div class="video-wrapper rounded-lg overflow-hidden border-2 border-slate-600 bg-black shadow-lg mb-6">
-        <video id="webcamRegister" autoplay playsinline muted width="320" height="240"></video>
+        <video id="webcamRegister" autoplay playsinline muted width="320" height="240" class="brightness-110 contrast-105"></video>
       </div>
 
       <div class="w-full text-left bg-slate-900/50 p-4 rounded-lg border border-slate-700 space-y-3">
         <div>
-          <label class="block text-xs text-slate-400 font-medium mb-1">Student Full Name</label>
-          <input id="studentName" type="text" placeholder="e.g. John Doe" class="bg-slate-800 border border-slate-600 text-sm rounded px-3 py-2 text-white w-full focus:outline-none focus:border-blue-500">
+          <label class="block text-xs text-slate-400 font-medium mb-1">Registration Number</label>
+          <input id="studentRegNo" type="text" placeholder="e.g. 251FA04001" uppercase class="bg-slate-800 border border-slate-600 text-sm rounded px-3 py-2 text-white w-full uppercase focus:outline-none focus:border-blue-500 tracking-wider font-mono">
+          <p class="text-[10px] text-slate-500 mt-1">Format must follow pattern: <span class="font-mono text-blue-400">251FAXXXXX</span></p>
         </div>
         
         <button id="registerBtn" disabled class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 rounded transition disabled:opacity-50 cursor-pointer">
@@ -115,26 +121,45 @@
       <!-- Enrolled Students Table & Export -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        <!-- Enrolled Students List -->
-        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
-          <h3 class="text-lg font-semibold mb-3 text-slate-200">Registered Students</h3>
-          <div class="overflow-y-auto max-h-[250px] bg-slate-900/60 rounded-lg p-2 border border-slate-700/50">
-            <ul id="adminStudentList" class="space-y-2">
-              <li class="text-xs text-slate-500 text-center py-4">Loading students...</li>
-            </ul>
+        <!-- Registered Students & Student-Specific History -->
+        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex flex-col justify-between">
+          <div>
+            <div class="mb-3">
+              <h3 class="text-lg font-semibold text-slate-200 mb-2">Select Student to View History</h3>
+              <select id="studentSelect" class="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded p-2 focus:outline-none focus:border-blue-500 font-mono">
+                <option value="">-- Select Registered Student --</option>
+              </select>
+            </div>
+            <div class="overflow-y-auto max-h-[200px] bg-slate-900/60 rounded-lg p-2 border border-slate-700/50">
+              <ul id="adminStudentList" class="space-y-2">
+                <li class="text-xs text-slate-500 text-center py-4">Select a student above to view record...</li>
+              </ul>
+            </div>
           </div>
         </div>
 
-        <!-- Attendance Logs & CSV Export -->
+        <!-- Attendance Logs & Filter by Date -->
         <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex flex-col justify-between">
           <div>
-            <div class="flex justify-between items-center mb-3">
-              <h3 class="text-lg font-semibold text-slate-200">Attendance Log History</h3>
-              <button id="exportCsvBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded transition cursor-pointer flex items-center gap-1">
-                📥 Export CSV
-              </button>
+            <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
+              <h3 class="text-lg font-semibold text-slate-200">Attendance History</h3>
+              <div class="flex items-center gap-2">
+                <button id="resetTodayBtn" class="bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 text-xs font-bold px-2.5 py-1.5 rounded transition border border-rose-500/30 cursor-pointer flex items-center gap-1">
+                  🔄 Reset Today
+                </button>
+                <button id="exportCsvBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-2.5 py-1.5 rounded transition cursor-pointer flex items-center gap-1">
+                  📥 Export
+                </button>
+              </div>
             </div>
-            <div class="overflow-y-auto max-h-[200px] bg-slate-900/60 rounded-lg p-2 border border-slate-700/50">
+
+            <!-- Date Picker Filter -->
+            <div class="mb-3 flex items-center gap-2">
+              <label class="text-xs text-slate-400 font-medium whitespace-nowrap">Filter Date:</label>
+              <input id="datePicker" type="date" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded px-2 py-1 focus:outline-none focus:border-blue-500 w-full font-mono">
+            </div>
+
+            <div class="overflow-y-auto max-h-[170px] bg-slate-900/60 rounded-lg p-2 border border-slate-700/50">
               <ul id="adminLogList" class="space-y-2">
                 <li class="text-xs text-slate-500 text-center py-4">Loading log history...</li>
               </ul>
@@ -158,7 +183,6 @@
       deleteDoc,
       doc,
       query, 
-      where, 
       orderBy,
       serverTimestamp 
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -187,20 +211,29 @@
     const videoRegister = document.getElementById('webcamRegister');
     const statusText = document.getElementById('status');
     const registerBtn = document.getElementById('registerBtn');
-    const studentNameInput = document.getElementById('studentName');
+    const studentRegNoInput = document.getElementById('studentRegNo');
     const attendanceList = document.getElementById('attendanceList');
     const logCount = document.getElementById('logCount');
 
+    const toggleCameraBtn = document.getElementById('toggleCameraBtn');
+    const cameraBtnIcon = document.getElementById('cameraBtnIcon');
+    const cameraBtnText = document.getElementById('cameraBtnText');
+
     const statTotalStudents = document.getElementById('statTotalStudents');
     const statTodayAttendance = document.getElementById('statTodayAttendance');
+    const studentSelect = document.getElementById('studentSelect');
     const adminStudentList = document.getElementById('adminStudentList');
+    const datePicker = document.getElementById('datePicker');
     const adminLogList = document.getElementById('adminLogList');
     const exportCsvBtn = document.getElementById('exportCsvBtn');
+    const resetTodayBtn = document.getElementById('resetTodayBtn');
 
     let globalStream = null;
+    let isCameraOn = false;
     let currentMode = 'scan'; 
     let registeredStudents = []; 
     let allAttendanceLogs = [];
+    let todayLogsToDelete = []; 
     let markedToday = new Set();
     let faceMatcher = null;
     
@@ -209,6 +242,32 @@
     let isAdminAuthenticated = false;
 
     const CDN_MODELS = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+
+    // Format time (12-hour format)
+    function formatTime12Hour(dateObj) {
+      return dateObj.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+    }
+
+    // Format full date-time (12-hour format)
+    function formatDateTime12Hour(dateObj) {
+      return dateObj.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+    }
+
+    // Set today's date into the date picker by default
+    datePicker.value = new Date().toISOString().split('T')[0];
 
     // Navigation Switcher
     navScan.addEventListener('click', () => switchView('scan'));
@@ -227,10 +286,18 @@
       }
     });
 
+    // Camera On/Off Toggle Handler
+    toggleCameraBtn.addEventListener('click', () => {
+      if (isCameraOn) {
+        stopSharedCamera();
+      } else {
+        initSharedCamera();
+      }
+    });
+
     function switchView(mode) {
       currentMode = mode;
       
-      // Update Tab CSS
       [navScan, navRegister, navAdmin].forEach(btn => {
         btn.className = "px-5 py-2 rounded-lg text-sm font-semibold transition bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 cursor-pointer";
       });
@@ -242,11 +309,11 @@
       if (mode === 'scan') {
         viewScan.classList.remove('hidden');
         navScan.className = "px-5 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow-lg border border-blue-500 cursor-pointer";
-        attachCameraToVideo(videoScan);
+        if (isCameraOn) attachCameraToVideo(videoScan);
       } else if (mode === 'register') {
         viewRegister.classList.remove('hidden');
         navRegister.className = "px-5 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow-lg border border-blue-500 cursor-pointer";
-        attachCameraToVideo(videoRegister);
+        if (isCameraOn) attachCameraToVideo(videoRegister);
       } else if (mode === 'admin') {
         viewAdmin.classList.remove('hidden');
         navAdmin.className = "px-5 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow-lg border border-blue-500 cursor-pointer";
@@ -277,17 +344,63 @@
     }
 
     function initSharedCamera() {
-      navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } })
-        .then(stream => {
-          globalStream = stream;
-          registerBtn.disabled = false;
-          switchView('scan');
-        })
-        .catch(err => {
-          console.error(err);
-          statusText.innerText = "Camera Permission Denied";
-          statusText.className = "mb-6 text-xs text-center font-semibold px-4 py-2 rounded-full bg-red-500/20 text-red-300 border border-red-500/30 max-w-md mx-auto";
+      const constraints = {
+        video: {
+          width: { ideal: 320 },
+          height: { ideal: 240 },
+          advanced: [
+            { exposureMode: "continuous" },
+            { whiteBalanceMode: "continuous" }
+          ]
+        }
+      };
+
+      const handleStreamSuccess = (stream) => {
+        globalStream = stream;
+        isCameraOn = true;
+        registerBtn.disabled = false;
+        
+        toggleCameraBtn.className = "px-4 py-2 rounded-lg text-sm font-semibold transition bg-rose-600 text-white hover:bg-rose-500 shadow-lg border border-rose-500 cursor-pointer flex items-center gap-2";
+        cameraBtnIcon.innerText = "🚫";
+        cameraBtnText.innerText = "Turn Camera Off";
+
+        statusText.innerText = "Camera Active - Ready to Scan";
+        statusText.className = "mb-6 text-xs text-center font-semibold px-4 py-2 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 max-w-md mx-auto";
+
+        if (currentMode === 'scan') attachCameraToVideo(videoScan);
+        if (currentMode === 'register') attachCameraToVideo(videoRegister);
+      };
+
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then(handleStreamSuccess)
+        .catch(() => {
+          navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } })
+            .then(handleStreamSuccess)
+            .catch(err => {
+              console.error(err);
+              statusText.innerText = "Camera Permission Denied";
+              statusText.className = "mb-6 text-xs text-center font-semibold px-4 py-2 rounded-full bg-red-500/20 text-red-300 border border-red-500/30 max-w-md mx-auto";
+            });
         });
+    }
+
+    function stopSharedCamera() {
+      if (globalStream) {
+        globalStream.getTracks().forEach(track => track.stop());
+        globalStream = null;
+      }
+      isCameraOn = false;
+      registerBtn.disabled = true;
+
+      videoScan.srcObject = null;
+      videoRegister.srcObject = null;
+
+      toggleCameraBtn.className = "px-4 py-2 rounded-lg text-sm font-semibold transition bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg border border-emerald-500 cursor-pointer flex items-center gap-2";
+      cameraBtnIcon.innerText = "📹";
+      cameraBtnText.innerText = "Turn Camera On";
+
+      statusText.innerText = "Camera Paused";
+      statusText.className = "mb-6 text-xs text-center font-semibold px-4 py-2 rounded-full bg-slate-700 text-slate-300 border border-slate-600 max-w-md mx-auto";
     }
 
     function attachCameraToVideo(targetVideo) {
@@ -305,14 +418,14 @@
           const data = doc.data();
           registeredStudents.push({
             id: doc.id,
-            name: data.name,
+            regNo: data.regNo,
             descriptor: new Float32Array(data.descriptor)
           });
         });
 
         if (registeredStudents.length > 0) {
           const labeledDescriptors = registeredStudents.map(s => 
-            new faceapi.LabeledFaceDescriptors(s.name, [s.descriptor])
+            new faceapi.LabeledFaceDescriptors(s.regNo, [s.descriptor])
           );
           faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.45);
         } else {
@@ -337,6 +450,7 @@
         attendanceList.innerHTML = '';
         markedToday.clear();
         allAttendanceLogs = [];
+        todayLogsToDelete = [];
 
         if (!querySnapshot.empty) {
           querySnapshot.forEach((docSnap) => {
@@ -345,14 +459,16 @@
             
             allAttendanceLogs.push({
               id: docSnap.id,
-              name: data.studentName,
+              regNo: data.studentRegNo || data.studentName || 'N/A',
               status: data.status || 'Present',
               time: logDate
             });
 
             if (logDate >= startOfDay) {
-              markedToday.add(data.studentName);
-              renderLogItem(data.studentName, logDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+              const reg = data.studentRegNo || data.studentName;
+              markedToday.add(reg);
+              todayLogsToDelete.push(docSnap.id);
+              renderLogItem(reg, formatTime12Hour(logDate));
             }
           });
           logCount.innerText = `${markedToday.size} logged`;
@@ -365,7 +481,7 @@
       }
     }
 
-    // Attendance Scanning Loop
+    // Detection Loop
     videoScan.addEventListener('play', () => {
       const canvas = faceapi.createCanvasFromMedia(videoScan);
       const wrapper = videoScan.parentElement;
@@ -377,7 +493,7 @@
       faceapi.matchDimensions(canvas, displaySize);
 
       setInterval(async () => {
-        if (currentMode !== 'scan') return;
+        if (currentMode !== 'scan' || !isCameraOn) return;
 
         const detections = await faceapi.detectAllFaces(videoScan, new faceapi.TinyFaceDetectorOptions())
           .withFaceLandmarks()
@@ -398,10 +514,16 @@
       }, 300);
     });
 
-    // Student Registration Handler
+    // Registration with RegNo Pattern Validation (251FAXXXXX)
     registerBtn.addEventListener('click', async () => {
-      const name = studentNameInput.value.trim();
-      if (!name) return alert("Please enter a student name first.");
+      if (!isCameraOn) return alert("Please turn on the camera first.");
+
+      const regNo = studentRegNoInput.value.trim().toUpperCase();
+      const regNoPattern = /^251FA[A-Z0-9]{5}$/;
+
+      if (!regNoPattern.test(regNo)) {
+        return alert("Invalid Registration Number format!\nMust follow pattern: 251FAXXXXX (e.g. 251FA04001)");
+      }
 
       registerBtn.innerText = "Scanning...";
       registerBtn.disabled = true;
@@ -415,13 +537,13 @@
 
         try {
           await addDoc(collection(db, "students"), {
-            name: name,
+            regNo: regNo,
             descriptor: descriptorArray,
             createdAt: serverTimestamp()
           });
 
-          alert(`Successfully enrolled and saved ${name} to Firebase!`);
-          studentNameInput.value = '';
+          alert(`Successfully enrolled student ${regNo}!`);
+          studentRegNoInput.value = '';
           await fetchStudentsFromFirebase();
           switchView('scan');
         } catch (e) {
@@ -435,100 +557,174 @@
       registerBtn.disabled = false;
     });
 
-    async function markAttendance(studentName) {
-      if (markedToday.has(studentName)) return;
+    async function markAttendance(studentRegNo) {
+      if (markedToday.has(studentRegNo)) return;
 
-      markedToday.add(studentName);
+      markedToday.add(studentRegNo);
       const now = new Date();
-      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const timeString = formatTime12Hour(now);
 
       try {
         await addDoc(collection(db, "attendance"), {
-          studentName: studentName,
+          studentRegNo: studentRegNo,
           status: "Present",
           timestamp: serverTimestamp()
         });
 
         if (markedToday.size === 1) attendanceList.innerHTML = '';
-        renderLogItem(studentName, timeString);
+        renderLogItem(studentRegNo, timeString);
         logCount.innerText = `${markedToday.size} logged`;
         await fetchTodayLogsFromFirebase();
       } catch (err) {
         console.error("Failed to mark attendance:", err);
-        markedToday.delete(studentName);
+        markedToday.delete(studentRegNo);
       }
     }
 
-    function renderLogItem(name, time) {
+    function renderLogItem(regNo, time) {
       const listItem = document.createElement('li');
-      listItem.className = "flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700 text-xs text-slate-200 animate-pulse";
+      listItem.className = "flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700 text-xs text-slate-200 font-mono";
       listItem.innerHTML = `
         <span class="font-medium flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-emerald-400"></span> ${name}
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span> ${regNo}
         </span>
-        <span class="text-slate-400 font-mono">${time}</span>
+        <span class="text-slate-400 font-mono text-[11px]">${time}</span>
       `;
       attendanceList.prepend(listItem);
     }
 
-    // ADMIN DASHBOARD LOGIC
+    // ADMIN DASHBOARD & FILTERS
     function renderAdminDashboard() {
       statTotalStudents.innerText = registeredStudents.length;
       statTodayAttendance.innerText = markedToday.size;
 
-      // Render Registered Students
+      // Populate Registered Student Dropdown
+      studentSelect.innerHTML = '<option value="">-- Select Registered Student --</option>';
+      registeredStudents.forEach(student => {
+        const option = document.createElement('option');
+        option.value = student.regNo;
+        option.textContent = student.regNo;
+        studentSelect.appendChild(option);
+      });
+
+      renderFilteredLogs();
+    }
+
+    // Filter Logs by Selected Date
+    datePicker.addEventListener('change', renderFilteredLogs);
+
+    // Filter Logs by Selected Student Reg No
+    studentSelect.addEventListener('change', () => {
+      const selectedReg = studentSelect.value;
       adminStudentList.innerHTML = '';
-      if (registeredStudents.length > 0) {
-        registeredStudents.forEach(student => {
+
+      if (!selectedReg) {
+        adminStudentList.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Select a student above to view record...</li>';
+        return;
+      }
+
+      const studentLogs = allAttendanceLogs.filter(log => log.regNo === selectedReg);
+      const matchedStudent = registeredStudents.find(s => s.regNo === selectedReg);
+
+      if (studentLogs.length > 0) {
+        studentLogs.forEach(log => {
           const li = document.createElement('li');
-          li.className = "flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700 text-xs";
+          li.className = "flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700 text-xs font-mono text-slate-300";
           li.innerHTML = `
-            <span class="font-medium text-slate-200">${student.name}</span>
-            <button data-id="${student.id}" class="delete-student-btn bg-red-500/20 hover:bg-red-500/40 text-red-300 text-[10px] px-2 py-1 rounded transition border border-red-500/30 cursor-pointer">
-              Delete
-            </button>
+            <span>${log.regNo}</span>
+            <span class="text-slate-400 text-[10px]">${formatDateTime12Hour(log.time)}</span>
           `;
           adminStudentList.appendChild(li);
         });
-
-        document.querySelectorAll('.delete-student-btn').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            const studentId = e.target.getAttribute('data-id');
-            if (confirm("Are you sure you want to delete this student's face profile?")) {
-              await deleteDoc(doc(db, "students", studentId));
-              await fetchStudentsFromFirebase();
-              renderAdminDashboard();
-            }
-          });
-        });
       } else {
-        adminStudentList.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">No registered students found.</li>';
+        adminStudentList.innerHTML = `<li class="text-xs text-slate-500 text-center py-4">No attendance records found for ${selectedReg}.</li>`;
       }
 
-      // Render Log History
+      // Append Delete Option at bottom of history view
+      if (matchedStudent) {
+        const delDiv = document.createElement('div');
+        delDiv.className = "pt-2 mt-2 border-t border-slate-700 text-right";
+        delDiv.innerHTML = `
+          <button data-id="${matchedStudent.id}" id="deleteSelectedStudentBtn" class="bg-red-500/20 hover:bg-red-500/40 text-red-300 text-[10px] font-bold px-2.5 py-1 rounded transition border border-red-500/30 cursor-pointer">
+            🗑 Delete ${selectedReg} Profile
+          </button>
+        `;
+        adminStudentList.appendChild(delDiv);
+
+        document.getElementById('deleteSelectedStudentBtn').addEventListener('click', async (e) => {
+          const studentId = e.target.getAttribute('data-id');
+          if (confirm(`Are you sure you want to delete profile for ${selectedReg}?`)) {
+            await deleteDoc(doc(db, "students", studentId));
+            await fetchStudentsFromFirebase();
+            renderAdminDashboard();
+          }
+        });
+      }
+    });
+
+    function renderFilteredLogs() {
       adminLogList.innerHTML = '';
-      if (allAttendanceLogs.length > 0) {
-        allAttendanceLogs.forEach(log => {
+      const selectedDate = datePicker.value; // YYYY-MM-DD
+
+      if (!selectedDate) {
+        adminLogList.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Please select a date above.</li>';
+        return;
+      }
+
+      const filtered = allAttendanceLogs.filter(log => {
+        const logDateStr = log.time.toISOString().split('T')[0];
+        return logDateStr === selectedDate;
+      });
+
+      if (filtered.length > 0) {
+        filtered.forEach(log => {
           const li = document.createElement('li');
-          li.className = "flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700 text-xs text-slate-300";
+          li.className = "flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700 text-xs font-mono text-slate-300";
           li.innerHTML = `
-            <span>${log.name}</span>
-            <span class="text-slate-400 text-[10px]">${log.time.toLocaleString()}</span>
+            <span>${log.regNo}</span>
+            <span class="text-slate-400 text-[10px]">${formatTime12Hour(log.time)}</span>
           `;
           adminLogList.appendChild(li);
         });
       } else {
-        adminLogList.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">No logs recorded yet.</li>';
+        adminLogList.innerHTML = `<li class="text-xs text-slate-500 text-center py-4">No attendance logs found for ${selectedDate}.</li>`;
       }
     }
 
-    // Export Logs to CSV
+    // Reset Today's Attendance Handler
+    resetTodayBtn.addEventListener('click', async () => {
+      if (todayLogsToDelete.length === 0) {
+        return alert("There are no attendance logs to reset for today.");
+      }
+
+      const confirmed = confirm(`Are you sure you want to reset today's attendance? This will permanently delete ${todayLogsToDelete.length} log(s) for today.`);
+      if (!confirmed) return;
+
+      resetTodayBtn.innerText = "Resetting...";
+      resetTodayBtn.disabled = true;
+
+      try {
+        await Promise.all(todayLogsToDelete.map(id => deleteDoc(doc(db, "attendance", id))));
+
+        alert("Today's attendance has been successfully reset!");
+        await fetchTodayLogsFromFirebase();
+        renderAdminDashboard();
+      } catch (err) {
+        console.error("Error resetting today's attendance:", err);
+        alert("Failed to reset attendance. Please try again.");
+      } finally {
+        resetTodayBtn.innerText = "🔄 Reset Today";
+        resetTodayBtn.disabled = false;
+      }
+    });
+
+    // Export Filtered / All Logs to CSV
     exportCsvBtn.addEventListener('click', () => {
       if (allAttendanceLogs.length === 0) return alert("No logs available to export.");
 
-      let csvContent = "data:text/csv;charset=utf-8,Student Name,Status,Timestamp\n";
+      let csvContent = "data:text/csv;charset=utf-8,Registration Number,Status,Timestamp\n";
       allAttendanceLogs.forEach(log => {
-        csvContent += `"${log.name}","${log.status}","${log.time.toLocaleString()}"\n`;
+        csvContent += `"${log.regNo}","${log.status}","${formatDateTime12Hour(log.time)}"\n`;
       });
 
       const encodedUri = encodeURI(csvContent);
