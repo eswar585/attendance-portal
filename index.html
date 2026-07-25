@@ -146,13 +146,30 @@
         <div class="flex flex-wrap justify-between items-center gap-4 mb-4 pb-3 border-b border-slate-700">
           <div>
             <h3 class="text-lg font-semibold text-slate-200">Student Attendance History Matrix</h3>
-            <p class="text-xs text-slate-400">Select a student to inspect or edit date-wise & period-wise records.</p>
+            <p class="text-xs text-slate-400">Select a student and date range to inspect or edit records.</p>
           </div>
           
           <div class="w-full sm:w-auto min-w-[240px]">
             <select id="studentSelect" class="w-full bg-slate-900 border border-blue-500/50 text-blue-300 text-xs font-bold rounded-lg p-2.5 focus:outline-none focus:border-blue-400 font-mono shadow-inner cursor-pointer">
               <option value="">-- Select Registered Student --</option>
             </select>
+          </div>
+        </div>
+
+        <!-- Date Range Filter Bar for Student Matrix -->
+        <div id="studentMatrixFilterBar" class="hidden bg-slate-900/60 p-3 rounded-lg border border-slate-700/60 mb-4 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-slate-400 font-semibold">Range:</span>
+            <button class="range-preset-btn bg-blue-600 text-white px-2.5 py-1 rounded border border-blue-500 font-medium cursor-pointer" data-range="7days">7 Days</button>
+            <button class="range-preset-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded border border-slate-700 font-medium cursor-pointer" data-range="thismonth">This Month</button>
+            <button class="range-preset-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded border border-slate-700 font-medium cursor-pointer" data-range="30days">30 Days</button>
+            <button class="range-preset-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded border border-slate-700 font-medium cursor-pointer" data-range="all">All Time</button>
+          </div>
+
+          <div class="flex items-center gap-2 font-mono">
+            <input type="date" id="matrixStartDate" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 focus:outline-none focus:border-blue-500 text-xs">
+            <span class="text-slate-500">to</span>
+            <input type="date" id="matrixEndDate" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 focus:outline-none focus:border-blue-500 text-xs">
           </div>
         </div>
 
@@ -251,6 +268,11 @@
     const studentSelect = document.getElementById('studentSelect');
     const studentTableContainer = document.getElementById('studentTableContainer');
     const studentActionContainer = document.getElementById('studentActionContainer');
+    const studentMatrixFilterBar = document.getElementById('studentMatrixFilterBar');
+    const matrixStartDate = document.getElementById('matrixStartDate');
+    const matrixEndDate = document.getElementById('matrixEndDate');
+    const rangePresetBtns = document.querySelectorAll('.range-preset-btn');
+
     const datePicker = document.getElementById('datePicker');
     const adminLogList = document.getElementById('adminLogList');
     const exportCsvBtn = document.getElementById('exportCsvBtn');
@@ -292,7 +314,48 @@
       });
     }
 
+    // Default Date Range Setup (Last 7 Days)
+    function setPresetRange(type) {
+      const today = new Date();
+      const endStr = today.toISOString().split('T')[0];
+      let start = new Date();
+
+      if (type === '7days') {
+        start.setDate(today.getDate() - 6);
+      } else if (type === 'thismonth') {
+        start = new Date(today.getFullYear(), today.getMonth(), 1);
+      } else if (type === '30days') {
+        start.setDate(today.getDate() - 29);
+      } else if (type === 'all') {
+        start = new Date('2020-01-01');
+      }
+
+      const startStr = start.toISOString().split('T')[0];
+      matrixStartDate.value = startStr;
+      matrixEndDate.value = endStr;
+
+      rangePresetBtns.forEach(btn => {
+        if (btn.getAttribute('data-range') === type) {
+          btn.className = "range-preset-btn bg-blue-600 text-white px-2.5 py-1 rounded border border-blue-500 font-medium cursor-pointer";
+        } else {
+          btn.className = "range-preset-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded border border-slate-700 font-medium cursor-pointer";
+        }
+      });
+
+      renderStudentMatrixTable();
+    }
+
+    setPresetRange('7days');
     datePicker.value = new Date().toISOString().split('T')[0];
+
+    rangePresetBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        setPresetRange(e.currentTarget.getAttribute('data-range'));
+      });
+    });
+
+    matrixStartDate.addEventListener('change', renderStudentMatrixTable);
+    matrixEndDate.addEventListener('change', renderStudentMatrixTable);
 
     navScan.addEventListener('click', () => switchView('scan'));
     navRegister.addEventListener('click', () => switchView('register'));
@@ -639,8 +702,6 @@
     }
 
     datePicker.addEventListener('change', renderFilteredLogs);
-
-    // Filter & Render Student Matrix Table
     studentSelect.addEventListener('change', renderStudentMatrixTable);
 
     function renderStudentMatrixTable() {
@@ -650,17 +711,29 @@
       studentActionContainer.innerHTML = '';
 
       if (!selectedReg) {
+        studentMatrixFilterBar.classList.add('hidden');
         studentTableContainer.innerHTML = '<p class="text-xs text-slate-500 text-center py-10">Select a student from the dropdown above to view their date-wise & period-wise report.</p>';
         return;
       }
 
+      studentMatrixFilterBar.classList.remove('hidden');
+
+      const start = matrixStartDate.value ? new Date(matrixStartDate.value + 'T00:00:00') : new Date('2020-01-01');
+      const end = matrixEndDate.value ? new Date(matrixEndDate.value + 'T23:59:59') : new Date('2099-12-31');
+
       const studentLogs = allAttendanceLogs.filter(log => log.regNo === selectedReg);
       const matchedStudent = registeredStudents.find(s => s.regNo === selectedReg);
 
-      const uniqueDates = [...new Set(allAttendanceLogs.map(log => log.time.toISOString().split('T')[0]))].sort().reverse();
+      // Generate date list within selected range
+      const uniqueDates = [...new Set(allAttendanceLogs.map(log => log.time.toISOString().split('T')[0]))]
+        .filter(dStr => {
+          const d = new Date(dStr + 'T12:00:00');
+          return d >= start && d <= end;
+        })
+        .sort().reverse();
 
       if (uniqueDates.length === 0) {
-        studentTableContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-10">No attendance logs available in system yet.</p>`;
+        studentTableContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-10">No attendance records found for ${selectedReg} within selected date range.</p>`;
         return;
       }
 
@@ -727,7 +800,7 @@
 
       studentTableContainer.innerHTML = tableHtml;
 
-      // Render Action Buttons (Edit Attendance & Delete Profile)
+      // Render Action Buttons
       if (matchedStudent) {
         studentActionContainer.classList.remove('hidden');
         studentActionContainer.innerHTML = `
