@@ -29,15 +29,15 @@
     <span class="text-2xl font-bold bg-white text-emerald-600 rounded-full w-8 h-8 flex items-center justify-center shadow">✓</span>
     <div>
       <p class="text-[10px] font-sans text-emerald-100 font-semibold uppercase tracking-wider">Attendance Marked!</p>
-      <p id="toastRegNo" class="text-sm md:text-base font-bold tracking-widest">251FA04001</p>
+      <p id="toastRegNo" class="text-sm md:text-base font-bold tracking-widest">23A01A0001</p>
     </div>
   </div>
 
   <header class="max-w-7xl mx-auto mb-6 text-center">
     <h1 class="text-2xl md:text-3xl font-bold text-blue-400">AI Face Attendance Portal</h1>
-    <p class="text-slate-400 text-xs md:text-sm mt-1">Real-time facial identification & administrative dashboard</p>
+    <p class="text-slate-400 text-xs md:text-sm mt-1">Real-time facial identification & administrative portal</p>
     
-    <!-- Mode Selection Navigation & Camera Controls -->
+    <!-- Navigation & Camera Controls -->
     <div class="flex flex-wrap justify-center items-center gap-3 mt-4 md:mt-6">
       <button id="navScan" class="px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition bg-blue-600 text-white shadow-lg border border-blue-500 cursor-pointer">
         📷 Mark Attendance
@@ -59,54 +59,106 @@
   <main class="max-w-7xl mx-auto">
     
     <div id="status" class="mb-4 text-xs text-center font-semibold px-4 py-2 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 max-w-md mx-auto">
-      Connecting to Firebase & Loading Models...
+      Connecting to Firebase & Synchronizing Sessions...
     </div>
 
     <!-- VIEW 1: MARK ATTENDANCE MODE -->
-    <section id="viewScan" class="space-y-4">
+    <section id="viewScan" class="space-y-6">
       
-      <!-- Session Control Configuration Bar -->
-      <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg space-y-3">
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700/80 pb-3">
-          <div class="flex items-center gap-2">
-            <span class="text-xl">⏱️</span>
-            <div>
-              <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wide">Attendance Session Control</h2>
-              <p class="text-[11px] text-slate-400">Configure class details and set automated session timers</p>
+      <!-- 1. HIGHLY VISIBLE COUNTDOWN TIMER & SESSION HEADER BANNER -->
+      <div id="sessionBanner" class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-2 border-slate-700 p-5 rounded-2xl shadow-2xl text-center space-y-2 relative overflow-hidden">
+        
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-700/80 pb-3">
+          <div class="text-left">
+            <div class="flex items-center gap-2">
+              <span id="bannerStatusIndicator" class="h-3 w-3 rounded-full bg-rose-500"></span>
+              <h2 id="bannerTitle" class="text-base md:text-lg font-black tracking-widest text-rose-400 uppercase">ATTENDANCE CLOSED</h2>
             </div>
+            <p id="bannerSubject" class="text-xs md:text-sm text-slate-300 font-semibold mt-0.5">Subject: Not Configured</p>
           </div>
 
-          <!-- Live Session Status Badge -->
-          <div class="flex items-center gap-3">
-            <div id="sessionTimerBadge" class="hidden font-mono text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/30">
-              Time Left: <span id="sessionCountdown">--:--</span>
-            </div>
-            <span id="sessionStatusBadge" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 uppercase tracking-wider">
-              ● Session Closed
-            </span>
+          <div class="text-right">
+            <span class="text-[10px] text-slate-400 font-mono uppercase block">Active Period Window</span>
+            <span id="bannerTimeWindow" class="text-xs md:text-sm font-mono font-bold text-blue-300">--:-- -- – --:-- --</span>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+        <!-- Large Center Timer -->
+        <div class="py-2">
+          <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold">TIME REMAINING</p>
+          <p id="bannerCountdown" class="text-4xl md:text-6xl font-black font-mono text-slate-500 tracking-wider my-1">00:00</p>
+          <p id="bannerSubtext" class="text-xs text-rose-400/90 font-medium">The attendance period has ended.</p>
+        </div>
+      </div>
+
+      <!-- 2. ADMIN SESSION CONFIGURATION CONTROLS -->
+      <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-700/80 pb-2">
+          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+            ⚙️ Configure Attendance Session
+          </h3>
+          <span class="text-[11px] text-slate-400 font-mono">12-Hour AM/PM System</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          <!-- Subject -->
           <div>
             <label class="block text-slate-400 font-semibold mb-1">Subject / Class</label>
             <input id="sessionSubject" type="text" value="Data Structures" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-blue-500 font-medium">
           </div>
+          
+          <!-- Date -->
           <div>
-            <label class="block text-slate-400 font-semibold mb-1">Date</label>
+            <label class="block text-slate-400 font-semibold mb-1">Attendance Date</label>
             <input id="sessionDate" type="date" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-blue-500 font-mono">
           </div>
+
+          <!-- Start Time (12-Hour AM/PM) -->
           <div>
             <label class="block text-slate-400 font-semibold mb-1">Start Time</label>
-            <input id="sessionStartTime" type="time" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-blue-500 font-mono">
+            <div class="flex items-center gap-1">
+              <select id="startHour" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-slate-200 text-xs font-mono w-full">
+                <option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option>
+                <option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option>
+                <option value="09">09</option><option value="10" selected>10</option><option value="11">11</option><option value="12">12</option>
+              </select>
+              <span class="text-slate-500 font-bold">:</span>
+              <select id="startMinute" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-slate-200 text-xs font-mono w-full">
+                <option value="00" selected>00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option>
+                <option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option>
+                <option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option>
+              </select>
+              <select id="startAmpm" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-slate-200 text-xs font-mono font-bold">
+                <option value="AM" selected>AM</option>
+                <option value="PM">PM</option>
+              </select>
+            </div>
           </div>
+
+          <!-- End Time (12-Hour AM/PM) -->
           <div>
             <label class="block text-slate-400 font-semibold mb-1">Closing Time</label>
-            <input id="sessionEndTime" type="time" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-blue-500 font-mono">
+            <div class="flex items-center gap-1">
+              <select id="endHour" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-slate-200 text-xs font-mono w-full">
+                <option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option>
+                <option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option>
+                <option value="09">09</option><option value="10" selected>10</option><option value="11">11</option><option value="12">12</option>
+              </select>
+              <span class="text-slate-500 font-bold">:</span>
+              <select id="endMinute" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-slate-200 text-xs font-mono w-full">
+                <option value="00">00</option><option value="05">05</option><option value="10">10</option><option value="15" selected>15</option>
+                <option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option>
+                <option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option>
+              </select>
+              <select id="endAmpm" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-slate-200 text-xs font-mono font-bold">
+                <option value="AM" selected>AM</option>
+                <option value="PM">PM</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        <!-- Admin Control Buttons -->
+        <!-- Admin Buttons -->
         <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-700/60">
           <div class="flex flex-wrap items-center gap-2">
             <button id="btnOpenSession" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition border border-emerald-500 cursor-pointer flex items-center gap-1.5 shadow">
@@ -122,16 +174,16 @@
 
           <div class="flex items-center gap-2">
             <button id="btnResetSession" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold px-3 py-2 rounded-lg transition border border-slate-600 cursor-pointer flex items-center gap-1">
-              🔄 Reset
+              🔄 Reset Marks
             </button>
             <button id="btnSaveSession" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition border border-blue-500 cursor-pointer flex items-center gap-1 shadow">
-              💾 Save Session
+              💾 Save Records
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Attendance Live Metrics Bar -->
+      <!-- 3. ATTENDANCE METRICS SUMMARY BAR -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/80 text-center">
           <p class="text-[11px] uppercase font-semibold text-slate-400">Present</p>
@@ -142,7 +194,7 @@
           <p id="metricAbsent" class="text-xl font-bold text-rose-400 font-mono mt-0.5">0</p>
         </div>
         <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/80 text-center">
-          <p class="text-[11px] uppercase font-semibold text-slate-400">Total Students</p>
+          <p class="text-[11px] uppercase font-semibold text-slate-400">Total Enrolled</p>
           <p id="metricTotal" class="text-xl font-bold text-blue-400 font-mono mt-0.5">0</p>
         </div>
         <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/80 text-center">
@@ -151,7 +203,7 @@
         </div>
       </div>
 
-      <!-- Split Layout: Face Scanner (Left) + Complete Student Register (Right) -->
+      <!-- 4. RECOMMENDED SPLIT LAYOUT: FACE SCANNER (LEFT) + STUDENT REGISTER (RIGHT) -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         <!-- Left Column: Face Scanner Feed -->
@@ -167,10 +219,10 @@
           <div class="video-wrapper rounded-xl overflow-hidden border-2 border-slate-600 bg-black shadow-lg">
             <video id="webcamScan" autoplay playsinline muted width="320" height="240" class="brightness-110 contrast-105"></video>
           </div>
-          <p class="text-xs text-slate-400 mt-3">Position student face in frame to mark attendance automatically.</p>
+          <p class="text-xs text-slate-400 mt-3">Position student face in camera frame to mark attendance automatically.</p>
         </div>
 
-        <!-- Right Column: Complete Attendance Register Table -->
+        <!-- Right Column: Complete Student Register Table -->
         <div class="lg:col-span-7 bg-slate-800 p-5 rounded-xl border border-slate-700 flex flex-col shadow-xl">
           
           <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
@@ -186,8 +238,8 @@
             </div>
           </div>
 
-          <!-- Fixed Height Scrollable Table Area -->
-          <div class="register-scroll overflow-y-auto max-h-[360px] bg-slate-900/80 rounded-xl border border-slate-700/60 p-2">
+          <!-- Compact Internal Scroll Area for Complete Register -->
+          <div class="register-scroll overflow-y-auto max-h-[380px] bg-slate-900/80 rounded-xl border border-slate-700/60 p-2">
             <table class="w-full text-left border-collapse text-xs">
               <thead class="sticky top-0 bg-slate-900 border-b border-slate-700 text-slate-400 text-[11px] uppercase font-mono z-10">
                 <tr>
@@ -224,8 +276,7 @@
           <input id="studentNameInput" type="text" placeholder="e.g. John Doe" class="bg-slate-800 border border-slate-600 text-sm rounded px-3 py-2 text-white w-full focus:outline-none focus:border-blue-500 mb-2">
 
           <label class="block text-xs text-slate-400 font-medium mb-1">Registration Number</label>
-          <input id="studentRegNo" type="text" placeholder="e.g. 251FA04001" class="bg-slate-800 border border-slate-600 text-sm rounded px-3 py-2 text-white w-full uppercase focus:outline-none focus:border-blue-500 tracking-wider font-mono">
-          <p class="text-[10px] text-slate-500 mt-1">Format must follow pattern: <span class="font-mono text-blue-400">251FAXXXXX</span></p>
+          <input id="studentRegNo" type="text" placeholder="e.g. 23A01A0001" class="bg-slate-800 border border-slate-600 text-sm rounded px-3 py-2 text-white w-full uppercase focus:outline-none focus:border-blue-500 tracking-wider font-mono">
         </div>
         
         <button id="registerBtn" disabled class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 rounded transition disabled:opacity-50 cursor-pointer">
@@ -237,7 +288,6 @@
     <!-- VIEW 3: ADMIN DASHBOARD -->
     <section id="viewAdmin" class="hidden space-y-6">
       
-      <!-- Metrics Row -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex justify-between items-center">
           <div>
@@ -249,77 +299,23 @@
         
         <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex justify-between items-center">
           <div>
-            <p class="text-xs text-slate-400 uppercase font-semibold">Today's Attendance</p>
+            <p class="text-xs text-slate-400 uppercase font-semibold">Active Session Marks</p>
             <h3 id="statTodayAttendance" class="text-2xl font-bold text-emerald-400 mt-1">0</h3>
           </div>
           <span class="text-3xl">✅</span>
         </div>
       </div>
 
-      <!-- Student Specific History Grid View -->
-      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl">
-        <div class="flex flex-wrap justify-between items-center gap-4 mb-4 pb-3 border-b border-slate-700">
-          <div>
-            <h3 class="text-lg font-semibold text-slate-200">Student Attendance History Matrix</h3>
-            <p class="text-xs text-slate-400">Select a student and date range to inspect or edit records.</p>
-          </div>
-          
-          <div class="w-full sm:w-auto min-w-[240px]">
-            <select id="studentSelect" class="w-full bg-slate-900 border border-blue-500/50 text-blue-300 text-xs font-bold rounded-lg p-2.5 focus:outline-none focus:border-blue-400 font-mono shadow-inner cursor-pointer">
-              <option value="">-- Select Registered Student --</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Date Range Filter Bar for Student Matrix -->
-        <div id="studentMatrixFilterBar" class="hidden bg-slate-900/60 p-3 rounded-lg border border-slate-700/60 mb-4 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="text-slate-400 font-semibold">Range:</span>
-            <button class="range-preset-btn bg-blue-600 text-white px-2.5 py-1 rounded border border-blue-500 font-medium cursor-pointer" data-range="7days">7 Days</button>
-            <button class="range-preset-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded border border-slate-700 font-medium cursor-pointer" data-range="thismonth">This Month</button>
-            <button class="range-preset-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded border border-slate-700 font-medium cursor-pointer" data-range="30days">30 Days</button>
-            <button class="range-preset-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded border border-slate-700 font-medium cursor-pointer" data-range="all">All Time</button>
-          </div>
-
-          <div class="flex items-center gap-2 font-mono">
-            <input type="date" id="matrixStartDate" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 focus:outline-none focus:border-blue-500 text-xs">
-            <span class="text-slate-500">to</span>
-            <input type="date" id="matrixEndDate" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 focus:outline-none focus:border-blue-500 text-xs">
-          </div>
-        </div>
-
-        <!-- Student Attendance Matrix Table -->
-        <div id="studentTableContainer" class="overflow-x-auto min-h-[140px] max-h-[350px]">
-          <p class="text-xs text-slate-500 text-center py-10">Select a student from the dropdown above to view their report.</p>
-        </div>
-
-        <!-- Action Bar: Edit Attendance & Delete Profile Buttons -->
-        <div id="studentActionContainer" class="hidden pt-3 mt-3 border-t border-slate-700 flex justify-end items-center gap-3">
-          <!-- Dynamically populated buttons -->
-        </div>
-      </div>
-
-      <!-- General Attendance History & Date Filter -->
+      <!-- General Attendance Logs -->
       <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl">
         <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
-          <h3 class="text-lg font-semibold text-slate-200">General Attendance Logs</h3>
-          <div class="flex items-center gap-2">
-            <button id="resetTodayBtn" class="bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 text-xs font-bold px-2.5 py-1.5 rounded transition border border-rose-500/30 cursor-pointer flex items-center gap-1">
-              🔄 Reset Today
-            </button>
-            <button id="exportCsvBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-2.5 py-1.5 rounded transition cursor-pointer flex items-center gap-1">
-              📥 Export CSV
-            </button>
-          </div>
+          <h3 class="text-lg font-semibold text-slate-200">Saved Attendance Logs</h3>
+          <button id="exportCsvBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded transition cursor-pointer flex items-center gap-1">
+            📥 Export CSV
+          </button>
         </div>
 
-        <!-- Date Picker Filter -->
-        <div class="mb-3 flex items-center gap-2 max-w-xs">
-          <label class="text-xs text-slate-400 font-medium whitespace-nowrap">Filter Date:</label>
-          <input id="datePicker" type="date" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded px-2 py-1 focus:outline-none focus:border-blue-500 w-full font-mono">
-        </div>
-
-        <div class="overflow-y-auto max-h-[180px] bg-slate-900/60 rounded-lg p-2 border border-slate-700/50">
+        <div class="overflow-y-auto max-h-[250px] bg-slate-900/60 rounded-lg p-2 border border-slate-700/50">
           <ul id="adminLogList" class="space-y-2">
             <li class="text-xs text-slate-500 text-center py-4">Loading log history...</li>
           </ul>
@@ -338,8 +334,9 @@
       collection, 
       addDoc, 
       getDocs, 
-      deleteDoc,
       doc,
+      setDoc,
+      getDoc,
       query, 
       where,
       orderBy,
@@ -378,19 +375,30 @@
     const cameraBtnIcon = document.getElementById('cameraBtnIcon');
     const cameraBtnText = document.getElementById('cameraBtnText');
 
-    // Attendance Session Elements
+    // Countdown Banner UI Elements
+    const sessionBanner = document.getElementById('sessionBanner');
+    const bannerStatusIndicator = document.getElementById('bannerStatusIndicator');
+    const bannerTitle = document.getElementById('bannerTitle');
+    const bannerSubject = document.getElementById('bannerSubject');
+    const bannerTimeWindow = document.getElementById('bannerTimeWindow');
+    const bannerCountdown = document.getElementById('bannerCountdown');
+    const bannerSubtext = document.getElementById('bannerSubtext');
+
+    // Session Inputs
     const sessionSubject = document.getElementById('sessionSubject');
     const sessionDate = document.getElementById('sessionDate');
-    const sessionStartTime = document.getElementById('sessionStartTime');
-    const sessionEndTime = document.getElementById('sessionEndTime');
+    const startHour = document.getElementById('startHour');
+    const startMinute = document.getElementById('startMinute');
+    const startAmpm = document.getElementById('startAmpm');
+    const endHour = document.getElementById('endHour');
+    const endMinute = document.getElementById('endMinute');
+    const endAmpm = document.getElementById('endAmpm');
+
     const btnOpenSession = document.getElementById('btnOpenSession');
     const btnCloseSession = document.getElementById('btnCloseSession');
     const btnExtendSession = document.getElementById('btnExtendSession');
     const btnResetSession = document.getElementById('btnResetSession');
     const btnSaveSession = document.getElementById('btnSaveSession');
-    const sessionStatusBadge = document.getElementById('sessionStatusBadge');
-    const sessionTimerBadge = document.getElementById('sessionTimerBadge');
-    const sessionCountdown = document.getElementById('sessionCountdown');
 
     // Metrics
     const metricPresent = document.getElementById('metricPresent');
@@ -405,18 +413,8 @@
     // Admin elements
     const statTotalStudents = document.getElementById('statTotalStudents');
     const statTodayAttendance = document.getElementById('statTodayAttendance');
-    const studentSelect = document.getElementById('studentSelect');
-    const studentTableContainer = document.getElementById('studentTableContainer');
-    const studentActionContainer = document.getElementById('studentActionContainer');
-    const studentMatrixFilterBar = document.getElementById('studentMatrixFilterBar');
-    const matrixStartDate = document.getElementById('matrixStartDate');
-    const matrixEndDate = document.getElementById('matrixEndDate');
-    const rangePresetBtns = document.querySelectorAll('.range-preset-btn');
-
-    const datePicker = document.getElementById('datePicker');
     const adminLogList = document.getElementById('adminLogList');
     const exportCsvBtn = document.getElementById('exportCsvBtn');
-    const resetTodayBtn = document.getElementById('resetTodayBtn');
 
     // Toast
     const attendanceToast = document.getElementById('attendanceToast');
@@ -428,38 +426,34 @@
     let currentMode = 'scan'; 
     let registeredStudents = []; 
     let allAttendanceLogs = [];
-    let todayLogsToDelete = []; 
 
-    // Session State
-    let isSessionOpen = false;
+    // Active Session State Synchronized with Firestore
+    let activeSession = null; // { subject, date, startTimeStr, endTimeStr, endTimestamp, isClosed }
     let activeSessionPresentSet = new Map(); // RegNo -> timeString
     let sessionTimerInterval = null;
 
     let faceMatcher = null;
-    
-    // PIN Configuration
     const ADMIN_PIN = "2000";
     let isAdminAuthenticated = false;
 
     const CDN_MODELS = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
 
-    function formatTime12Hour(dateObj) {
+    // Helper: Convert 12-Hour Parts to Date Object
+    function get12HourDateObj(dateStr, hourStr, minStr, ampmStr) {
+      let h = parseInt(hourStr, 10);
+      if (ampmStr === 'PM' && h < 12) h += 12;
+      if (ampmStr === 'AM' && h === 12) h = 0;
+      
+      const d = new Date(`${dateStr}T00:00:00`);
+      d.setHours(h, parseInt(minStr, 10), 0, 0);
+      return d;
+    }
+
+    // Helper: Format Date Object to 12-Hour AM/PM String (e.g. 10:15 AM)
+    function format12HourString(dateObj) {
       return dateObj.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-      });
-    }
-
-    function formatDateTime12Hour(dateObj) {
-      return dateObj.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
         hour12: true
       });
     }
@@ -467,81 +461,24 @@
     function showAttendanceToast(regNo) {
       toastRegNo.innerText = regNo;
       attendanceToast.classList.remove('hidden');
-
       if (toastTimeout) clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => {
-        attendanceToast.classList.add('hidden');
-      }, 3000);
+      toastTimeout = setTimeout(() => attendanceToast.classList.add('hidden'), 3000);
     }
 
-    // Default Date Range Setup
-    function setDefaultSessionControls() {
-      const now = new Date();
-      sessionDate.value = now.toISOString().split('T')[0];
-
-      const startMs = now.getTime();
-      const endMs = startMs + (15 * 60 * 1000); // Default 15 minute window
-
-      const startObj = new Date(startMs);
-      const endObj = new Date(endMs);
-
-      sessionStartTime.value = `${String(startObj.getHours()).padStart(2, '0')}:${String(startObj.getMinutes()).padStart(2, '0')}`;
-      sessionEndTime.value = `${String(endObj.getHours()).padStart(2, '0')}:${String(endObj.getMinutes()).padStart(2, '0')}`;
-    }
-
-    function setPresetRange(type) {
-      const today = new Date();
-      const endStr = today.toISOString().split('T')[0];
-      let start = new Date();
-
-      if (type === '7days') {
-        start.setDate(today.getDate() - 6);
-      } else if (type === 'thismonth') {
-        start = new Date(today.getFullYear(), today.getMonth(), 1);
-      } else if (type === '30days') {
-        start.setDate(today.getDate() - 29);
-      } else if (type === 'all') {
-        start = new Date('2020-01-01');
-      }
-
-      const startStr = start.toISOString().split('T')[0];
-      matrixStartDate.value = startStr;
-      matrixEndDate.value = endStr;
-
-      rangePresetBtns.forEach(btn => {
-        if (btn.getAttribute('data-range') === type) {
-          btn.className = "range-preset-btn bg-blue-600 text-white px-2.5 py-1 rounded border border-blue-500 font-medium cursor-pointer";
-        } else {
-          btn.className = "range-preset-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded border border-slate-700 font-medium cursor-pointer";
-        }
-      });
-
-      renderStudentMatrixTable();
-    }
-
-    setDefaultSessionControls();
-    setPresetRange('7days');
-    datePicker.value = new Date().toISOString().split('T')[0];
-
-    rangePresetBtns.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        setPresetRange(e.currentTarget.getAttribute('data-range'));
-      });
-    });
-
-    matrixStartDate.addEventListener('change', renderStudentMatrixTable);
-    matrixEndDate.addEventListener('change', renderStudentMatrixTable);
+    // Initialize UI Defaults
+    const now = new Date();
+    sessionDate.value = now.toISOString().split('T')[0];
 
     navScan.addEventListener('click', () => switchView('scan'));
     navRegister.addEventListener('click', () => switchView('register'));
     navAdmin.addEventListener('click', () => {
       if (!isAdminAuthenticated) {
-        const userPin = prompt("Enter Admin PIN to access dashboard:");
-        if (userPin === ADMIN_PIN) {
+        const pin = prompt("Enter Admin PIN to access dashboard:");
+        if (pin === ADMIN_PIN) {
           isAdminAuthenticated = true;
           switchView('admin');
-        } else if (userPin !== null) {
-          alert("Incorrect PIN! Access denied.");
+        } else if (pin !== null) {
+          alert("Incorrect PIN!");
         }
       } else {
         switchView('admin');
@@ -549,16 +486,12 @@
     });
 
     toggleCameraBtn.addEventListener('click', () => {
-      if (isCameraOn) {
-        stopSharedCamera();
-      } else {
-        initSharedCamera();
-      }
+      if (isCameraOn) stopSharedCamera();
+      else initSharedCamera();
     });
 
     function switchView(mode) {
       currentMode = mode;
-      
       [navScan, navRegister, navAdmin].forEach(btn => {
         btn.className = "px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 cursor-pointer";
       });
@@ -591,7 +524,7 @@
         ]);
 
         await fetchStudentsFromFirebase();
-        await fetchTodayLogsFromFirebase();
+        await fetchActiveSessionFromFirebase();
 
         statusText.innerText = "Firebase Connected - System Ready";
         statusText.className = "mb-4 text-xs text-center font-semibold px-4 py-2 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 max-w-md mx-auto";
@@ -599,49 +532,29 @@
         initSharedCamera();
       } catch (err) {
         console.error(err);
-        statusText.innerText = "Error initializing app models. Check internet connection.";
+        statusText.innerText = "Error initializing application.";
         statusText.className = "mb-4 text-xs text-center font-semibold px-4 py-2 rounded-full bg-red-500/20 text-red-300 border border-red-500/30 max-w-md mx-auto";
       }
     }
 
     function initSharedCamera() {
-      const constraints = {
-        video: {
-          width: { ideal: 320 },
-          height: { ideal: 240 },
-          advanced: [
-            { exposureMode: "continuous" },
-            { whiteBalanceMode: "continuous" }
-          ]
-        }
-      };
+      navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } })
+        .then(stream => {
+          globalStream = stream;
+          isCameraOn = true;
+          registerBtn.disabled = false;
+          
+          toggleCameraBtn.className = "px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition bg-rose-600 text-white hover:bg-rose-500 shadow-lg border border-rose-500 cursor-pointer flex items-center gap-2";
+          cameraBtnIcon.innerText = "🚫";
+          cameraBtnText.innerText = "Turn Camera Off";
 
-      const handleStreamSuccess = (stream) => {
-        globalStream = stream;
-        isCameraOn = true;
-        registerBtn.disabled = false;
-        
-        toggleCameraBtn.className = "px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition bg-rose-600 text-white hover:bg-rose-500 shadow-lg border border-rose-500 cursor-pointer flex items-center gap-2";
-        cameraBtnIcon.innerText = "🚫";
-        cameraBtnText.innerText = "Turn Camera Off";
-
-        statusText.innerText = "Camera Active - Ready to Scan";
-        statusText.className = "mb-4 text-xs text-center font-semibold px-4 py-2 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 max-w-md mx-auto";
-
-        if (currentMode === 'scan') attachCameraToVideo(videoScan);
-        if (currentMode === 'register') attachCameraToVideo(videoRegister);
-      };
-
-      navigator.mediaDevices.getUserMedia(constraints)
-        .then(handleStreamSuccess)
-        .catch(() => {
-          navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } })
-            .then(handleStreamSuccess)
-            .catch(err => {
-              console.error(err);
-              statusText.innerText = "Camera Permission Denied";
-              statusText.className = "mb-4 text-xs text-center font-semibold px-4 py-2 rounded-full bg-red-500/20 text-red-300 border border-red-500/30 max-w-md mx-auto";
-            });
+          if (currentMode === 'scan') attachCameraToVideo(videoScan);
+          if (currentMode === 'register') attachCameraToVideo(videoRegister);
+        })
+        .catch(err => {
+          console.error(err);
+          statusText.innerText = "Camera Access Denied";
+          statusText.className = "mb-4 text-xs text-center font-semibold px-4 py-2 rounded-full bg-red-500/20 text-red-300 border border-red-500/30 max-w-md mx-auto";
         });
     }
 
@@ -659,9 +572,6 @@
       toggleCameraBtn.className = "px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg border border-emerald-500 cursor-pointer flex items-center gap-2";
       cameraBtnIcon.innerText = "📹";
       cameraBtnText.innerText = "Turn Camera On";
-
-      statusText.innerText = "Camera Paused";
-      statusText.className = "mb-4 text-xs text-center font-semibold px-4 py-2 rounded-full bg-slate-700 text-slate-300 border border-slate-600 max-w-md mx-auto";
     }
 
     function attachCameraToVideo(targetVideo) {
@@ -685,7 +595,6 @@
           });
         });
 
-        // Sort alphabetically by Reg No
         registeredStudents.sort((a, b) => a.regNo.localeCompare(b.regNo));
 
         if (registeredStudents.length > 0) {
@@ -703,47 +612,41 @@
       }
     }
 
-    async function fetchTodayLogsFromFirebase() {
+    // FIREBASE SESSION SYNCHRONIZATION
+    async function fetchActiveSessionFromFirebase() {
       try {
-        const startOfDay = new Date();
-        startOfDay.setHours(0, 0, 0, 0);
+        const sessionDoc = await getDoc(doc(db, "active_session", "current"));
+        if (sessionDoc.exists()) {
+          const data = sessionDoc.data();
+          const endMs = data.endMs;
+          const nowMs = new Date().getTime();
 
-        const q = query(
-          collection(db, "attendance"),
-          orderBy("timestamp", "desc")
-        );
+          activeSession = {
+            subject: data.subject,
+            date: data.date,
+            startTimeStr: data.startTimeStr,
+            endTimeStr: data.endTimeStr,
+            endMs: endMs,
+            isClosed: data.isClosed || nowMs >= endMs
+          };
 
-        const querySnapshot = await getDocs(q);
-        allAttendanceLogs = [];
-        todayLogsToDelete = [];
-
-        if (!querySnapshot.empty) {
-          querySnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const logDate = data.timestamp ? data.timestamp.toDate() : new Date();
-            const reg = data.studentRegNo || 'N/A';
-            const period = data.period || 'Period 1';
-            
-            allAttendanceLogs.push({
-              id: docSnap.id,
-              regNo: reg,
-              period: period,
-              status: data.status || 'Present',
-              time: logDate
-            });
-
-            if (logDate >= startOfDay) {
-              todayLogsToDelete.push(docSnap.id);
-            }
-          });
+          if (!activeSession.isClosed && nowMs < endMs) {
+            applyOpenSessionUI();
+            startCountdownTimer();
+          } else {
+            applyClosedSessionUI();
+          }
+        } else {
+          applyClosedSessionUI();
         }
       } catch (err) {
-        console.error("Error loading logs:", err);
+        console.error("Error fetching session state:", err);
+        applyClosedSessionUI();
       }
     }
 
-    // SESSION MANAGEMENT CONTROLS
-    btnOpenSession.addEventListener('click', () => {
+    // OPEN ATTENDANCE SESSION
+    btnOpenSession.addEventListener('click', async () => {
       if (!isAdminAuthenticated) {
         const pin = prompt("Enter Admin PIN to open session:");
         if (pin !== ADMIN_PIN) return alert("Unauthorized access!");
@@ -751,12 +654,80 @@
       }
 
       const subject = sessionSubject.value.trim();
-      if (!subject) return alert("Please specify a Subject/Class.");
+      const dateVal = sessionDate.value;
+      if (!subject || !dateVal) return alert("Please specify Subject and Date.");
 
-      isSessionOpen = true;
-      
-      sessionStatusBadge.className = "text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider animate-pulse";
-      sessionStatusBadge.innerText = "● Session Active";
+      const startObj = get12HourDateObj(dateVal, startHour.value, startMinute.value, startAmpm.value);
+      const endObj = get12HourDateObj(dateVal, endHour.value, endMinute.value, endAmpm.value);
+
+      if (endObj.getTime() <= startObj.getTime()) {
+        return alert("Closing Time must be later than Start Time!");
+      }
+
+      const startTimeStr = `${startHour.value}:${startMinute.value} ${startAmpm.value}`;
+      const endTimeStr = `${endHour.value}:${endMinute.value} ${endAmpm.value}`;
+
+      const confirmMsg = `Confirm Attendance Session Details:\n\nSubject: ${subject}\nDate: ${dateVal}\nPeriod: ${startTimeStr} – ${endTimeStr}\n\nOpen attendance session now?`;
+      if (!confirm(confirmMsg)) return;
+
+      activeSession = {
+        subject: subject,
+        date: dateVal,
+        startTimeStr: startTimeStr,
+        endTimeStr: endTimeStr,
+        endMs: endObj.getTime(),
+        isClosed: false
+      };
+
+      // Save to Firebase so other devices and page refreshes synchronize
+      await setDoc(doc(db, "active_session", "current"), {
+        subject: subject,
+        date: dateVal,
+        startTimeStr: startTimeStr,
+        endTimeStr: endTimeStr,
+        endMs: endObj.getTime(),
+        isClosed: false,
+        openedAt: serverTimestamp()
+      });
+
+      applyOpenSessionUI();
+      startCountdownTimer();
+    });
+
+    btnCloseSession.addEventListener('click', async () => {
+      await closeAttendanceSession(true);
+    });
+
+    async function closeAttendanceSession(manual = false) {
+      if (activeSession) activeSession.isClosed = true;
+
+      try {
+        await setDoc(doc(db, "active_session", "current"), { isClosed: true }, { merge: true });
+      } catch (err) {
+        console.error("Error closing session on Firebase:", err);
+      }
+
+      applyClosedSessionUI();
+
+      if (manual) {
+        alert("Attendance session manually closed.");
+      } else {
+        alert("ATTENDANCE CLOSED\nThe attendance period has ended.");
+      }
+
+      // Auto-save session state
+      await autoSaveSessionRecords();
+    }
+
+    function applyOpenSessionUI() {
+      bannerStatusIndicator.className = "h-3 w-3 rounded-full bg-emerald-400 animate-ping";
+      bannerTitle.className = "text-base md:text-lg font-black tracking-widest text-emerald-400 uppercase";
+      bannerTitle.innerText = "ATTENDANCE OPEN";
+
+      bannerSubject.innerText = `Subject: ${activeSession.subject}`;
+      bannerTimeWindow.innerText = `${activeSession.startTimeStr} – ${activeSession.endTimeStr}`;
+      bannerSubtext.innerText = "Facial identification and marking active...";
+      bannerSubtext.className = "text-xs text-emerald-400/90 font-medium";
 
       btnOpenSession.disabled = true;
       btnOpenSession.classList.add('opacity-40', 'cursor-not-allowed');
@@ -767,19 +738,22 @@
       btnExtendSession.disabled = false;
       btnExtendSession.classList.remove('opacity-40', 'cursor-not-allowed');
 
-      sessionTimerBadge.classList.remove('hidden');
-
-      startSessionCountdownTimer();
       renderStudentRegisterList();
-    });
+    }
 
-    btnCloseSession.addEventListener('click', closeAttendanceSession);
+    function applyClosedSessionUI() {
+      if (sessionTimerInterval) clearInterval(sessionTimerInterval);
 
-    function closeAttendanceSession() {
-      isSessionOpen = false;
+      bannerStatusIndicator.className = "h-3 w-3 rounded-full bg-rose-500";
+      bannerTitle.className = "text-base md:text-lg font-black tracking-widest text-rose-400 uppercase";
+      bannerTitle.innerText = "ATTENDANCE CLOSED";
 
-      sessionStatusBadge.className = "text-xs font-bold px-3 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 uppercase tracking-wider";
-      sessionStatusBadge.innerText = "● Session Closed";
+      bannerSubject.innerText = activeSession ? `Subject: ${activeSession.subject}` : "Subject: Session Inactive";
+      bannerTimeWindow.innerText = activeSession ? `${activeSession.startTimeStr} – ${activeSession.endTimeStr}` : "--:-- -- – --:-- --";
+      bannerCountdown.innerText = "00:00";
+      bannerCountdown.className = "text-4xl md:text-6xl font-black font-mono text-slate-500 tracking-wider my-1";
+      bannerSubtext.innerText = "The attendance period has ended.";
+      bannerSubtext.className = "text-xs text-rose-400/90 font-medium";
 
       btnOpenSession.disabled = false;
       btnOpenSession.classList.remove('opacity-40', 'cursor-not-allowed');
@@ -790,106 +764,24 @@
       btnExtendSession.disabled = true;
       btnExtendSession.classList.add('opacity-40', 'cursor-not-allowed');
 
-      if (sessionTimerInterval) clearInterval(sessionTimerInterval);
-      sessionTimerBadge.classList.add('hidden');
-
       renderStudentRegisterList();
-      alert("Attendance session closed successfully. Students cannot mark attendance until session is re-opened.");
     }
 
-    btnExtendSession.addEventListener('click', () => {
-      if (!sessionEndTime.value) return;
-      
-      const [h, m] = sessionEndTime.value.split(':').map(Number);
-      let endMs = new Date().setHours(h, m, 0, 0) + (15 * 60 * 1000);
-      let newEndObj = new Date(endMs);
-
-      sessionEndTime.value = `${String(newEndObj.getHours()).padStart(2, '0')}:${String(newEndObj.getMinutes()).padStart(2, '0')}`;
-      alert("Session extended by 15 minutes!");
-    });
-
-    btnResetSession.addEventListener('click', () => {
-      if (!confirm("Are you sure you want to reset the active session marks?")) return;
-      activeSessionPresentSet.clear();
-      renderStudentRegisterList();
-    });
-
-    btnSaveSession.addEventListener('click', async () => {
-      if (activeSessionPresentSet.size === 0) {
-        if (!confirm("No students marked present. Do you still want to save this session?")) return;
-      }
-
-      btnSaveSession.innerText = "Saving...";
-      btnSaveSession.disabled = true;
-
-      try {
-        const dateStr = sessionDate.value;
-        const subject = sessionSubject.value;
-        const startTime = sessionStartTime.value;
-        const endTime = sessionEndTime.value;
-
-        // Save session meta
-        const sessionRef = await addDoc(collection(db, "attendance_sessions"), {
-          subject,
-          date: dateStr,
-          startTime,
-          endTime,
-          totalStudents: registeredStudents.length,
-          presentCount: activeSessionPresentSet.size,
-          status: isSessionOpen ? "Open" : "Closed",
-          createdAt: serverTimestamp()
-        });
-
-        // Save individual attendance records
-        const logPromises = [];
-        registeredStudents.forEach(student => {
-          const isPresent = activeSessionPresentSet.has(student.regNo);
-          logPromises.push(addDoc(collection(db, "attendance"), {
-            studentRegNo: student.regNo,
-            studentName: student.name,
-            subject: subject,
-            sessionId: sessionRef.id,
-            period: subject,
-            status: isPresent ? "Present" : "Absent",
-            timestamp: new Date()
-          }));
-        });
-
-        await Promise.all(logPromises);
-        alert("Attendance session saved permanently to database!");
-        await fetchTodayLogsFromFirebase();
-      } catch (err) {
-        console.error("Error saving session:", err);
-        alert("Failed to save session. Check console.");
-      } finally {
-        btnSaveSession.innerText = "💾 Save Session";
-        btnSaveSession.disabled = false;
-      }
-    });
-
-    function startSessionCountdownTimer() {
+    // COUNTDOWN TIMER SYNCHRONIZATION
+    function startCountdownTimer() {
       if (sessionTimerInterval) clearInterval(sessionTimerInterval);
 
       sessionTimerInterval = setInterval(() => {
-        if (!isSessionOpen) {
-          clearInterval(sessionTimerInterval);
+        if (!activeSession || activeSession.isClosed) {
+          applyClosedSessionUI();
           return;
         }
 
-        const dateVal = sessionDate.value;
-        const timeVal = sessionEndTime.value;
-
-        if (!dateVal || !timeVal) return;
-
-        const endDateTime = new Date(`${dateVal}T${timeVal}:00`);
-        const now = new Date();
-        const diffMs = endDateTime - now;
+        const nowMs = new Date().getTime();
+        const diffMs = activeSession.endMs - nowMs;
 
         if (diffMs <= 0) {
-          sessionCountdown.innerText = "00:00";
-          clearInterval(sessionTimerInterval);
-          closeAttendanceSession();
-          alert("⏱️ Attendance session closed automatically as configured closing time was reached.");
+          closeAttendanceSession(false);
           return;
         }
 
@@ -897,8 +789,80 @@
         const mins = Math.floor(totalSecs / 60);
         const secs = totalSecs % 60;
 
-        sessionCountdown.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        const timeString = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        bannerCountdown.innerText = timeString;
+
+        if (totalSecs <= 60) {
+          bannerCountdown.className = "text-4xl md:text-6xl font-black font-mono text-rose-400 tracking-wider my-1 animate-pulse";
+        } else {
+          bannerCountdown.className = "text-4xl md:text-6xl font-black font-mono text-emerald-400 tracking-wider my-1";
+        }
       }, 1000);
+    }
+
+    btnExtendSession.addEventListener('click', async () => {
+      if (!activeSession || activeSession.isClosed) return;
+
+      activeSession.endMs += (15 * 60 * 1000);
+      const newEndObj = new Date(activeSession.endMs);
+      activeSession.endTimeStr = format12HourString(newEndObj);
+
+      await setDoc(doc(db, "active_session", "current"), {
+        endTimeStr: activeSession.endTimeStr,
+        endMs: activeSession.endMs
+      }, { merge: true });
+
+      bannerTimeWindow.innerText = `${activeSession.startTimeStr} – ${activeSession.endTimeStr}`;
+      alert("Attendance session extended by 15 minutes!");
+    });
+
+    btnResetSession.addEventListener('click', () => {
+      if (!confirm("Are you sure you want to reset current session marks?")) return;
+      activeSessionPresentSet.clear();
+      renderStudentRegisterList();
+    });
+
+    btnSaveSession.addEventListener('click', async () => {
+      await autoSaveSessionRecords();
+      alert("Attendance records permanently saved to database!");
+    });
+
+    async function autoSaveSessionRecords() {
+      if (!activeSession) return;
+
+      btnSaveSession.innerText = "Saving...";
+      btnSaveSession.disabled = true;
+
+      try {
+        const sessionRef = await addDoc(collection(db, "attendance_sessions"), {
+          subject: activeSession.subject,
+          date: activeSession.date,
+          startTime: activeSession.startTimeStr,
+          endTime: activeSession.endTimeStr,
+          totalStudents: registeredStudents.length,
+          presentCount: activeSessionPresentSet.size,
+          savedAt: serverTimestamp()
+        });
+
+        const promises = registeredStudents.map(student => {
+          const isPresent = activeSessionPresentSet.has(student.regNo);
+          return addDoc(collection(db, "attendance"), {
+            studentRegNo: student.regNo,
+            studentName: student.name,
+            subject: activeSession.subject,
+            sessionId: sessionRef.id,
+            status: isPresent ? "Present" : "Absent",
+            timestamp: new Date()
+          });
+        });
+
+        await Promise.all(promises);
+      } catch (err) {
+        console.error("Error saving records:", err);
+      } finally {
+        btnSaveSession.innerText = "💾 Save Records";
+        btnSaveSession.disabled = false;
+      }
     }
 
     // RENDER COMPLETE STUDENT REGISTER
@@ -912,10 +876,12 @@
       );
 
       if (filtered.length === 0) {
-        studentRegisterTbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-slate-500">No students match search filter.</td></tr>`;
+        studentRegisterTbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-slate-500">No matching students found.</td></tr>`;
         updateMetrics();
         return;
       }
+
+      const isSessionOpen = activeSession && !activeSession.isClosed;
 
       filtered.forEach(student => {
         const isPresent = activeSessionPresentSet.has(student.regNo);
@@ -928,7 +894,7 @@
 
         tr.innerHTML = `
           <td class="p-2.5 text-center">
-            <button onclick="toggleManualAttendance('${student.regNo}')" ${!isSessionOpen ? 'disabled title="Session closed"' : ''} class="w-6 h-6 rounded flex items-center justify-center transition ${isPresent ? 'bg-emerald-500 text-slate-900 font-bold shadow-lg shadow-emerald-500/30' : 'bg-slate-800 border border-slate-600 hover:border-blue-500'} cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+            <button onclick="toggleManualAttendance('${student.regNo}')" ${!isSessionOpen ? 'disabled title="Session closed"' : ''} class="w-6 h-6 rounded flex items-center justify-center transition ${isPresent ? 'bg-emerald-500 text-slate-900 font-bold shadow-lg shadow-emerald-500/30' : 'bg-slate-800 border border-slate-600 hover:border-blue-500'} cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
               ${isPresent ? '✓' : ''}
             </button>
           </td>
@@ -946,14 +912,14 @@
     searchRegisterInput.addEventListener('input', renderStudentRegisterList);
 
     window.toggleManualAttendance = function(regNo) {
-      if (!isSessionOpen) {
-        return alert("Attendance session is currently CLOSED. Please open session first.");
+      if (!activeSession || activeSession.isClosed) {
+        return alert("ATTENDANCE CLOSED\nThe attendance period has ended.");
       }
 
       if (activeSessionPresentSet.has(regNo)) {
         activeSessionPresentSet.delete(regNo);
       } else {
-        activeSessionPresentSet.set(regNo, formatTime12Hour(new Date()));
+        activeSessionPresentSet.set(regNo, format12HourString(new Date()));
         showAttendanceToast(regNo);
       }
 
@@ -972,7 +938,7 @@
       metricPercent.innerText = `${percent}%`;
     }
 
-    // FACE SCANNER REALTIME DETECTION
+    // FACE SCANNER DETECTOR
     videoScan.addEventListener('play', () => {
       const canvas = faceapi.createCanvasFromMedia(videoScan);
       const wrapper = videoScan.parentElement;
@@ -994,7 +960,7 @@
         canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
         faceapi.draw.drawDetections(canvas, resizedDetections);
 
-        if (isSessionOpen && faceMatcher && detections.length > 0) {
+        if (activeSession && !activeSession.isClosed && faceMatcher && detections.length > 0) {
           detections.forEach(detection => {
             const match = faceMatcher.findBestMatch(detection.descriptor);
             if (match.label !== 'unknown' && match.distance < 0.45) {
@@ -1008,23 +974,19 @@
     function markAttendanceByFace(studentRegNo) {
       if (activeSessionPresentSet.has(studentRegNo)) return;
 
-      const timeStr = formatTime12Hour(new Date());
-      activeSessionPresentSet.set(studentRegNo, timeStr);
+      activeSessionPresentSet.set(studentRegNo, format12HourString(new Date()));
       showAttendanceToast(studentRegNo);
       renderStudentRegisterList();
     }
 
-    // ENROLLMENT WITH EXISTING FACE CHECK
+    // ENROLLMENT
     registerBtn.addEventListener('click', async () => {
-      if (!isCameraOn) return alert("Please turn on the camera first.");
+      if (!isCameraOn) return alert("Please turn on camera.");
 
       const regNo = studentRegNoInput.value.trim().toUpperCase();
       const name = studentNameInput.value.trim() || "Student Name";
-      const regNoPattern = /^251FA[A-Z0-9]{5}$/;
 
-      if (!regNoPattern.test(regNo)) {
-        return alert("Invalid Registration Number format!\nMust follow pattern: 251FAXXXXX (e.g. 251FA04001)");
-      }
+      if (!regNo) return alert("Please enter registration number.");
 
       registerBtn.innerText = "Scanning Face...";
       registerBtn.disabled = true;
@@ -1037,30 +999,28 @@
         if (faceMatcher) {
           const match = faceMatcher.findBestMatch(detection.descriptor);
           if (match.label !== 'unknown' && match.distance < 0.45) {
-            alert(`⚠️ WARNING: Face Registration Failed!\n\nThis face is already registered under Registration No: ${match.label}.\nEach student must have a unique facial profile.`);
+            alert(`Face already enrolled under Reg No: ${match.label}`);
             registerBtn.innerText = "Enroll Student Face";
             registerBtn.disabled = false;
             return;
           }
         }
 
-        const descriptorArray = Array.from(detection.descriptor);
-
         try {
           await addDoc(collection(db, "students"), {
             regNo: regNo,
             name: name,
-            descriptor: descriptorArray,
+            descriptor: Array.from(detection.descriptor),
             createdAt: serverTimestamp()
           });
 
-          alert(`Successfully enrolled student ${regNo} (${name})!`);
+          alert(`Successfully enrolled student ${regNo}!`);
           studentRegNoInput.value = '';
           studentNameInput.value = '';
           await fetchStudentsFromFirebase();
           switchView('scan');
         } catch (e) {
-          alert(`Firebase Error: ${e.message}`);
+          alert(`Error: ${e.message}`);
         }
       } else {
         alert("No face detected! Look directly into the camera.");
@@ -1070,237 +1030,61 @@
       registerBtn.disabled = false;
     });
 
-    // ADMIN DASHBOARD & MATRIX TABLE
-    function renderAdminDashboard() {
+    // ADMIN DASHBOARD
+    async function renderAdminDashboard() {
       statTotalStudents.innerText = registeredStudents.length;
       statTodayAttendance.innerText = activeSessionPresentSet.size;
 
-      studentSelect.innerHTML = '<option value="">-- Select Registered Student --</option>';
-      registeredStudents.forEach(student => {
-        const option = document.createElement('option');
-        option.value = student.regNo;
-        option.textContent = `${student.regNo} - ${student.name}`;
-        studentSelect.appendChild(option);
-      });
-
-      renderFilteredLogs();
-    }
-
-    datePicker.addEventListener('change', renderFilteredLogs);
-    studentSelect.addEventListener('change', renderStudentMatrixTable);
-
-    function renderStudentMatrixTable() {
-      const selectedReg = studentSelect.value;
-      studentTableContainer.innerHTML = '';
-      studentActionContainer.classList.add('hidden');
-      studentActionContainer.innerHTML = '';
-
-      if (!selectedReg) {
-        studentMatrixFilterBar.classList.add('hidden');
-        studentTableContainer.innerHTML = '<p class="text-xs text-slate-500 text-center py-10">Select a student from the dropdown above to view their date-wise & period-wise report.</p>';
-        return;
-      }
-
-      studentMatrixFilterBar.classList.remove('hidden');
-
-      const start = matrixStartDate.value ? new Date(matrixStartDate.value + 'T00:00:00') : new Date('2020-01-01');
-      const end = matrixEndDate.value ? new Date(matrixEndDate.value + 'T23:59:59') : new Date('2099-12-31');
-
-      const studentLogs = allAttendanceLogs.filter(log => log.regNo === selectedReg);
-      const matchedStudent = registeredStudents.find(s => s.regNo === selectedReg);
-
-      const uniqueDates = [...new Set(allAttendanceLogs.map(log => log.time.toISOString().split('T')[0]))]
-        .filter(dStr => {
-          const d = new Date(dStr + 'T12:00:00');
-          return d >= start && d <= end;
-        })
-        .sort().reverse();
-
-      if (uniqueDates.length === 0) {
-        studentTableContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-10">No attendance records found for ${selectedReg} within selected date range.</p>`;
-        return;
-      }
-
-      const attendanceMap = new Map();
-      studentLogs.forEach(log => {
-        const dateStr = log.time.toISOString().split('T')[0];
-        if (!attendanceMap.has(dateStr)) {
-          attendanceMap.set(dateStr, new Map());
-        }
-        attendanceMap.get(dateStr).set(log.period, log);
-      });
-
-      const periods = ['Period 1', 'Period 2', 'Period 3', 'Period 4', 'Period 5', 'Period 6', 'Period 7', 'Period 8'];
-
-      let tableHtml = `
-        <table class="w-full text-left border-collapse text-xs font-mono">
-          <thead>
-            <tr class="bg-slate-900 text-slate-400 border-b border-slate-700 text-[11px]">
-              <th class="p-2.5 font-semibold text-slate-300">Date</th>
-              ${periods.map(p => `<th class="p-2 text-center font-semibold">${p.replace('Period ', 'P')}</th>`).join('')}
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-700/60 text-slate-300">
-      `;
-
-      uniqueDates.forEach(dateStr => {
-        const periodMap = attendanceMap.get(dateStr) || new Map();
-        const displayDate = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric'
-        });
-
-        tableHtml += `<tr class="hover:bg-slate-800/60 transition">`;
-        tableHtml += `<td class="p-2.5 font-medium whitespace-nowrap text-slate-200">${displayDate}</td>`;
-
-        periods.forEach(p => {
-          const log = periodMap.get(p);
-          if (log) {
-            tableHtml += `
-              <td class="p-2 text-center text-emerald-400 text-sm font-bold cursor-pointer hover:scale-125 transition" 
-                  title="Click to toggle status for ${p}"
-                  onclick="toggleCellAttendance('${log.id}', '${selectedReg}', '${p}', '${dateStr}', true)">
-                ✓
-              </td>`;
-          } else {
-            tableHtml += `
-              <td class="p-2 text-center text-rose-500 text-sm font-bold opacity-75 cursor-pointer hover:scale-125 transition" 
-                  title="Click to toggle status for ${p}"
-                  onclick="toggleCellAttendance(null, '${selectedReg}', '${p}', '${dateStr}', false)">
-                ❌
-              </td>`;
-          }
-        });
-
-        tableHtml += `</tr>`;
-      });
-
-      tableHtml += `
-          </tbody>
-        </table>
-      `;
-
-      studentTableContainer.innerHTML = tableHtml;
-
-      if (matchedStudent) {
-        studentActionContainer.classList.remove('hidden');
-        studentActionContainer.innerHTML = `
-          <button id="editAttendanceBtn" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded transition border border-blue-500 cursor-pointer flex items-center gap-1">
-            ✏️ Edit Attendance
-          </button>
-          <button data-id="${matchedStudent.id}" id="deleteSelectedStudentBtn" class="bg-red-500/20 hover:bg-red-500/40 text-red-300 text-xs font-bold px-3 py-1.5 rounded transition border border-red-500/30 cursor-pointer flex items-center gap-1">
-            🗑️ Delete Profile
-          </button>
-        `;
-
-        document.getElementById('editAttendanceBtn').addEventListener('click', () => {
-          alert(`Instruction: Click directly on any ✓ or ❌ symbol in the table matrix above to manually flip attendance between Present and Absent for ${selectedReg}.`);
-        });
-
-        document.getElementById('deleteSelectedStudentBtn').addEventListener('click', async (e) => {
-          const studentId = e.currentTarget.getAttribute('data-id');
-          if (confirm(`Are you sure you want to delete profile for ${selectedReg}?`)) {
-            await deleteDoc(doc(db, "students", studentId));
-            await fetchStudentsFromFirebase();
-            renderAdminDashboard();
-          }
-        });
-      }
-    }
-
-    window.toggleCellAttendance = async function(logId, regNo, period, dateStr, isPresent) {
-      const action = isPresent ? "mark ABSENT" : "mark PRESENT";
-      if (!confirm(`Do you want to ${action} for ${regNo} on ${dateStr} (${period})?`)) return;
-
       try {
-        if (isPresent && logId) {
-          await deleteDoc(doc(db, "attendance", logId));
-        } else {
-          const targetDate = new Date(dateStr + 'T12:00:00');
-          await addDoc(collection(db, "attendance"), {
-            studentRegNo: regNo,
-            period: period,
-            status: "Present",
-            timestamp: targetDate
+        const querySnapshot = await getDocs(query(collection(db, "attendance"), orderBy("timestamp", "desc")));
+        allAttendanceLogs = [];
+        adminLogList.innerHTML = '';
+
+        querySnapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const t = data.timestamp ? data.timestamp.toDate() : new Date();
+          allAttendanceLogs.push({
+            regNo: data.studentRegNo,
+            name: data.studentName || 'Student',
+            subject: data.subject || 'Class',
+            status: data.status || 'Present',
+            time: t
           });
-        }
-
-        await fetchTodayLogsFromFirebase();
-        renderStudentMatrixTable();
-      } catch (err) {
-        console.error("Error editing attendance:", err);
-        alert("Failed to update attendance.");
-      }
-    };
-
-    function renderFilteredLogs() {
-      adminLogList.innerHTML = '';
-      const selectedDate = datePicker.value;
-
-      if (!selectedDate) {
-        adminLogList.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Please select a date above.</li>';
-        return;
-      }
-
-      const filtered = allAttendanceLogs.filter(log => {
-        const logDateStr = log.time.toISOString().split('T')[0];
-        return logDateStr === selectedDate;
-      });
-
-      if (filtered.length > 0) {
-        filtered.forEach(log => {
-          const li = document.createElement('li');
-          li.className = "flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700 text-xs font-mono text-slate-300";
-          li.innerHTML = `
-            <span>${log.regNo} <span class="text-[10px] text-blue-400 font-sans">(${log.period})</span></span>
-            <span class="text-slate-400 text-[10px]">${formatTime12Hour(log.time)}</span>
-          `;
-          adminLogList.appendChild(li);
         });
-      } else {
-        adminLogList.innerHTML = `<li class="text-xs text-slate-500 text-center py-4">No attendance logs found for ${selectedDate}.</li>`;
+
+        if (allAttendanceLogs.length > 0) {
+          allAttendanceLogs.forEach(log => {
+            const li = document.createElement('li');
+            li.className = "flex justify-between items-center bg-slate-800 p-2.5 rounded border border-slate-700 text-xs font-mono text-slate-300";
+            li.innerHTML = `
+              <div>
+                <span class="font-bold text-slate-200">${log.regNo}</span>
+                <span class="text-[11px] text-blue-400 font-sans ml-2">(${log.subject})</span>
+              </div>
+              <span class="text-slate-400 text-[11px]">${log.time.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true, month: 'short', day: 'numeric' })}</span>
+            `;
+            adminLogList.appendChild(li);
+          });
+        } else {
+          adminLogList.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">No logs recorded yet.</li>';
+        }
+      } catch (err) {
+        console.error("Error fetching admin logs:", err);
       }
     }
-
-    resetTodayBtn.addEventListener('click', async () => {
-      if (todayLogsToDelete.length === 0) {
-        return alert("There are no attendance logs to reset for today.");
-      }
-
-      const confirmed = confirm(`Are you sure you want to reset today's attendance? This will permanently delete ${todayLogsToDelete.length} log(s) for today.`);
-      if (!confirmed) return;
-
-      resetTodayBtn.innerText = "Resetting...";
-      resetTodayBtn.disabled = true;
-
-      try {
-        await Promise.all(todayLogsToDelete.map(id => deleteDoc(doc(db, "attendance", id))));
-
-        alert("Today's attendance has been successfully reset!");
-        await fetchTodayLogsFromFirebase();
-        renderAdminDashboard();
-      } catch (err) {
-        console.error("Error resetting today's attendance:", err);
-        alert("Failed to reset attendance. Please try again.");
-      } finally {
-        resetTodayBtn.innerText = "🔄 Reset Today";
-        resetTodayBtn.disabled = false;
-      }
-    });
 
     exportCsvBtn.addEventListener('click', () => {
       if (allAttendanceLogs.length === 0) return alert("No logs available to export.");
 
-      let csvContent = "data:text/csv;charset=utf-8,Registration Number,Period,Status,Timestamp\n";
+      let csvContent = "data:text/csv;charset=utf-8,Registration Number,Name,Subject,Status,Timestamp\n";
       allAttendanceLogs.forEach(log => {
-        csvContent += `"${log.regNo}","${log.period}","${log.status}","${formatDateTime12Hour(log.time)}"\n`;
+        csvContent += `"${log.regNo}","${log.name}","${log.subject}","${log.status}","${log.time.toLocaleString('en-US', { hour12: true })}"\n`;
       });
 
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
       link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `attendance_report_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute("download", `attendance_export_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
