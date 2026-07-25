@@ -16,7 +16,16 @@
     canvas { position: absolute; top: 0; left: 0; }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans">
+<body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans relative">
+
+  <!-- Visual Attendance Toast Notification (Appears at Screen Bottom) -->
+  <div id="attendanceToast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden bg-emerald-600 text-white font-mono px-6 py-3 rounded-full shadow-2xl border-2 border-emerald-300 flex items-center gap-3 animate-bounce">
+    <span class="text-2xl font-bold bg-white text-emerald-600 rounded-full w-8 h-8 flex items-center justify-center shadow">✔</span>
+    <div>
+      <p class="text-xs font-sans text-emerald-100 font-semibold uppercase tracking-wider">Attendance Marked!</p>
+      <p id="toastRegNo" class="text-base font-bold tracking-widest">251FA04001</p>
+    </div>
+  </div>
 
   <header class="max-w-5xl mx-auto mb-6 text-center">
     <h1 class="text-3xl font-bold text-blue-400">AI Face Attendance Portal</h1>
@@ -278,6 +287,11 @@
     const exportCsvBtn = document.getElementById('exportCsvBtn');
     const resetTodayBtn = document.getElementById('resetTodayBtn');
 
+    // Toast elements
+    const attendanceToast = document.getElementById('attendanceToast');
+    const toastRegNo = document.getElementById('toastRegNo');
+    let toastTimeout = null;
+
     let globalStream = null;
     let isCameraOn = false;
     let currentMode = 'scan'; 
@@ -314,7 +328,17 @@
       });
     }
 
-    // Default Date Range Setup (Last 7 Days)
+    // Helper to display toast popup at bottom of screen
+    function showAttendanceToast(regNo) {
+      toastRegNo.innerText = regNo;
+      attendanceToast.classList.remove('hidden');
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        attendanceToast.classList.add('hidden');
+      }, 3500);
+    }
+
     function setPresetRange(type) {
       const today = new Date();
       const endStr = today.toISOString().split('T')[0];
@@ -602,6 +626,7 @@
       }, 300);
     });
 
+    // ENROLLMENT WITH EXISTING FACE CHECK
     registerBtn.addEventListener('click', async () => {
       if (!isCameraOn) return alert("Please turn on the camera first.");
 
@@ -612,7 +637,7 @@
         return alert("Invalid Registration Number format!\nMust follow pattern: 251FAXXXXX (e.g. 251FA04001)");
       }
 
-      registerBtn.innerText = "Scanning...";
+      registerBtn.innerText = "Scanning Face...";
       registerBtn.disabled = true;
 
       const detection = await faceapi.detectSingleFace(videoRegister, new faceapi.TinyFaceDetectorOptions())
@@ -620,6 +645,17 @@
         .withFaceDescriptor();
 
       if (detection) {
+        // Check if this face matches any already enrolled student
+        if (faceMatcher) {
+          const match = faceMatcher.findBestMatch(detection.descriptor);
+          if (match.label !== 'unknown' && match.distance < 0.45) {
+            alert(`⚠️ WARNING: Face Registration Failed!\n\nThis face is already registered under Registration No: ${match.label}.\nEach student must have a unique facial profile.`);
+            registerBtn.innerText = "Enroll Student Face";
+            registerBtn.disabled = false;
+            return;
+          }
+        }
+
         const descriptorArray = Array.from(detection.descriptor);
 
         try {
@@ -665,6 +701,10 @@
         if (markedToday.size === 1) attendanceList.innerHTML = '';
         renderLogItem(studentRegNo, selectedPeriod, timeString);
         logCount.innerText = `${markedToday.size} logged`;
+        
+        // Show Green Tick + Reg No at screen bottom
+        showAttendanceToast(studentRegNo);
+
         await fetchTodayLogsFromFirebase();
       } catch (err) {
         console.error("Failed to mark attendance:", err);
