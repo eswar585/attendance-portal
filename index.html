@@ -59,10 +59,8 @@
     <!-- VIEW 1: MARK ATTENDANCE MODE -->
     <section id="viewScan" class="space-y-4">
       
-      <!-- 1. COMPACT SESSION HEADER WITH RIGHT-CORNER COUNTDOWN TIMER -->
+      <!-- SESSION HEADER -->
       <div id="sessionBanner" class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-2 border-slate-700 p-4 rounded-xl shadow-xl flex flex-wrap items-center justify-between gap-4">
-        
-        <!-- Left Details -->
         <div class="flex items-center gap-3">
           <span id="bannerStatusIndicator" class="h-3 w-3 rounded-full bg-rose-500"></span>
           <div>
@@ -71,17 +69,15 @@
           </div>
         </div>
 
-        <!-- Right Corner Timer -->
         <div class="text-right bg-slate-900/90 px-4 py-2 rounded-lg border border-slate-700/80 shadow-inner min-w-[150px]">
           <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">TIME REMAINING</p>
           <p id="bannerCountdown" class="text-2xl md:text-3xl font-black font-mono text-slate-500 tracking-wider">15:00</p>
         </div>
       </div>
 
-      <!-- 2. ADMIN CONTROLS (Subject + Period Selection + Automatic 15m Start) -->
+      <!-- ADMIN CONTROLS -->
       <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 shadow-lg flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-4">
-          <!-- Subject Dropdown -->
           <div class="flex items-center gap-2">
             <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">Subject:</label>
             <select id="sessionSubject" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-bold focus:outline-none focus:border-blue-500">
@@ -95,7 +91,6 @@
             </select>
           </div>
 
-          <!-- Period Dropdown -->
           <div class="flex items-center gap-2">
             <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">Period:</label>
             <select id="sessionPeriod" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-bold focus:outline-none focus:border-blue-500">
@@ -127,11 +122,11 @@
         </div>
       </div>
 
-      <!-- 3. MAIN SPLIT LAYOUT: FACE SCANNER (LEFT) + 7x5 MATRIX GRID REGISTER (RIGHT) -->
+      <!-- MAIN SPLIT LAYOUT: FACE SCANNER (LEFT) + 10x10 MATRIX GRID REGISTER (RIGHT) -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         
         <!-- Left Column: Face Scanner Feed -->
-        <div class="lg:col-span-5 bg-slate-800 p-4 rounded-xl border border-slate-700 text-center flex flex-col items-center shadow-xl">
+        <div class="lg:col-span-4 bg-slate-800 p-4 rounded-xl border border-slate-700 text-center flex flex-col items-center shadow-xl">
           <div class="flex items-center justify-between w-full mb-2">
             <h3 class="text-sm font-semibold text-slate-200">Face Scanner</h3>
             <span id="scannerActiveDot" class="flex h-2.5 w-2.5 relative">
@@ -146,27 +141,25 @@
           <p class="text-[11px] text-slate-400 mt-2">Position student face in camera frame to mark attendance automatically.</p>
         </div>
 
-        <!-- Right Column: 7x5 Matrix Grid Student Register -->
-        <div class="lg:col-span-7 bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col shadow-xl">
-          
+        <!-- Right Column: 10x10 Matrix Grid Student Register -->
+        <div class="lg:col-span-8 bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col shadow-xl">
           <div class="flex items-center justify-between mb-3">
             <div>
               <h3 class="text-sm font-semibold text-slate-200">Student Register</h3>
-              <p class="text-[11px] text-slate-400">7x5 Matrix View (Click cell to mark manually)</p>
+              <p class="text-[11px] text-slate-400">10x10 Matrix View (Click cell to mark manually)</p>
             </div>
             <div class="text-xs font-mono text-emerald-400 font-bold bg-slate-900/80 px-3 py-1 rounded border border-slate-700">
               Present: <span id="matrixCount">0</span> / <span id="matrixTotal">0</span>
             </div>
           </div>
 
-          <!-- 7 Columns x 5 Rows Grid Container -->
-          <div id="studentMatrixGrid" class="grid grid-cols-7 gap-1.5 bg-slate-900 p-2.5 rounded-xl border border-slate-700/80 min-h-[260px]">
-            <div class="col-span-7 text-center text-xs text-slate-500 py-12">Loading student roster matrix...</div>
+          <!-- 10x10 Grid Container -->
+          <div id="studentMatrixGrid" class="grid grid-cols-5 sm:grid-cols-10 gap-1.5 bg-slate-900 p-2.5 rounded-xl border border-slate-700/80 min-h-[300px]">
+            <div class="col-span-10 text-center text-xs text-slate-500 py-12">Loading student roster matrix...</div>
           </div>
-
         </div>
-      </div>
 
+      </div>
     </section>
 
     <!-- VIEW 2: REGISTER STUDENT MODE -->
@@ -195,37 +188,130 @@
     <!-- VIEW 3: ADMIN DASHBOARD -->
     <section id="viewAdmin" class="hidden space-y-6">
       
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex justify-between items-center">
-          <div>
-            <p class="text-xs text-slate-400 uppercase font-semibold">Total Registered</p>
-            <h3 id="statTotalStudents" class="text-2xl font-bold text-blue-400 mt-1">0</h3>
-          </div>
-          <span class="text-3xl">👥</span>
+      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex justify-between items-center max-w-sm">
+        <div>
+          <p class="text-xs text-slate-400 uppercase font-semibold">Total Registered Students</p>
+          <h3 id="statTotalStudents" class="text-2xl font-bold text-blue-400 mt-1">0</h3>
         </div>
-        
-        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex justify-between items-center">
-          <div>
-            <p class="text-xs text-slate-400 uppercase font-semibold">Active Session Marks</p>
-            <h3 id="statTodayAttendance" class="text-2xl font-bold text-emerald-400 mt-1">0</h3>
-          </div>
-          <span class="text-3xl">✅</span>
-        </div>
+        <span class="text-3xl">👥</span>
       </div>
 
-      <!-- General Attendance Logs -->
-      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl">
-        <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
-          <h3 class="text-lg font-semibold text-slate-200">Saved Attendance Logs</h3>
-          <button id="exportCsvBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded transition cursor-pointer flex items-center gap-1">
-            📥 Export CSV
+      <!-- Action Choice Tabs -->
+      <div class="flex gap-4">
+        <button id="tabMarkAttendance" class="px-5 py-2.5 rounded-lg font-bold text-sm bg-blue-600 text-white border border-blue-500 shadow-md cursor-pointer transition">
+          ✏️ Mark Attendance
+        </button>
+        <button id="tabSeeAttendance" class="px-5 py-2.5 rounded-lg font-bold text-sm bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 cursor-pointer transition">
+          🔍 See Attendance
+        </button>
+      </div>
+
+      <!-- SECTION 1: MARK ATTENDANCE (MANUAL OVERRIDE) -->
+      <div id="panelMarkAttendance" class="bg-slate-800 p-5 rounded-xl border border-slate-700 space-y-4">
+        <h3 class="text-base font-bold text-blue-400 border-b border-slate-700 pb-2">Manual Attendance Modifier</h3>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Select Date</label>
+            <input type="date" id="adminMarkDate" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs w-full text-white">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Subject</label>
+            <select id="adminMarkSubject" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs w-full text-white">
+              <option value="DS">DS</option>
+              <option value="SFCDS">SFCDS</option>
+              <option value="DMS">DMS</option>
+              <option value="DEF">DEF</option>
+              <option value="OOPS">OOPS</option>
+              <option value="AI">AI</option>
+              <option value="DBMS">DBMS</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Period</label>
+            <select id="adminMarkPeriod" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs w-full text-white">
+              <option value="1">Period 1</option>
+              <option value="2">Period 2</option>
+              <option value="3">Period 3</option>
+              <option value="4">Period 4</option>
+              <option value="5">Period 5</option>
+              <option value="6">Period 6</option>
+              <option value="7">Period 7</option>
+              <option value="8">Period 8</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Student Reg No</label>
+            <input type="text" id="adminMarkRegNo" placeholder="e.g. 23A01A0001" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs w-full text-white uppercase font-mono">
+          </div>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button id="btnCheckStudentStatus" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded transition cursor-pointer">
+            Check Current Status
           </button>
         </div>
 
-        <div class="overflow-y-auto max-h-[250px] bg-slate-900/60 rounded-lg p-2 border border-slate-700/50">
-          <ul id="adminLogList" class="space-y-2">
-            <li class="text-xs text-slate-500 text-center py-4">Loading log history...</li>
-          </ul>
+        <!-- Dynamic Status & Toggle Result Box -->
+        <div id="markStatusBox" class="hidden mt-4 p-4 rounded-lg bg-slate-900 border border-slate-700 flex justify-between items-center">
+          <div>
+            <p class="text-xs text-slate-400">Student: <span id="markStudentInfo" class="font-bold text-white"></span></p>
+            <p class="text-xs text-slate-400 mt-1">Current Status: <span id="markCurrentStatus" class="font-bold"></span></p>
+          </div>
+          <button id="btnToggleStudentStatus" class="px-4 py-2 text-xs font-bold rounded shadow transition cursor-pointer">
+            <!-- Dynamically populated -->
+          </button>
+        </div>
+      </div>
+
+      <!-- SECTION 2: SEE ATTENDANCE -->
+      <div id="panelSeeAttendance" class="hidden bg-slate-800 p-5 rounded-xl border border-slate-700 space-y-4">
+        <h3 class="text-base font-bold text-blue-400 border-b border-slate-700 pb-2">Query Session Attendance Records</h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Select Date</label>
+            <input type="date" id="adminSeeDate" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs w-full text-white">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Subject</label>
+            <select id="adminSeeSubject" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs w-full text-white">
+              <option value="DS">DS</option>
+              <option value="SFCDS">SFCDS</option>
+              <option value="DMS">DMS</option>
+              <option value="DEF">DEF</option>
+              <option value="OOPS">OOPS</option>
+              <option value="AI">AI</option>
+              <option value="DBMS">DBMS</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Period</label>
+            <select id="adminSeePeriod" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs w-full text-white">
+              <option value="1">Period 1</option>
+              <option value="2">Period 2</option>
+              <option value="3">Period 3</option>
+              <option value="4">Period 4</option>
+              <option value="5">Period 5</option>
+              <option value="6">Period 6</option>
+              <option value="7">Period 7</option>
+              <option value="8">Period 8</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button id="btnShowPresentees" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded transition cursor-pointer">
+            Show Presentees
+          </button>
+          <button id="btnShowAbsentees" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-4 py-2 rounded transition cursor-pointer">
+            Show Absentees
+          </button>
+        </div>
+
+        <!-- Query Results List Container -->
+        <div id="queryResultsBox" class="mt-4 bg-slate-900 rounded-lg p-4 border border-slate-700/80 min-h-[150px]">
+          <p class="text-xs text-slate-500 text-center py-8">Select filters above and click "Show Presentees" or "Show Absentees".</p>
         </div>
       </div>
 
@@ -245,7 +331,7 @@
       setDoc,
       getDoc,
       query, 
-      orderBy,
+      where,
       serverTimestamp 
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -261,7 +347,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Nav elements
+    // Navigation elements
     const navScan = document.getElementById('navScan');
     const navRegister = document.getElementById('navRegister');
     const navAdmin = document.getElementById('navAdmin');
@@ -287,7 +373,7 @@
     const bannerSubject = document.getElementById('bannerSubject');
     const bannerCountdown = document.getElementById('bannerCountdown');
 
-    // Controls
+    // Session Controls
     const sessionSubject = document.getElementById('sessionSubject');
     const sessionPeriod = document.getElementById('sessionPeriod');
     const btnOpenSession = document.getElementById('btnOpenSession');
@@ -300,11 +386,31 @@
     const matrixCount = document.getElementById('matrixCount');
     const matrixTotal = document.getElementById('matrixTotal');
 
-    // Admin elements
+    // Admin Dashboard Elements
     const statTotalStudents = document.getElementById('statTotalStudents');
-    const statTodayAttendance = document.getElementById('statTodayAttendance');
-    const adminLogList = document.getElementById('adminLogList');
-    const exportCsvBtn = document.getElementById('exportCsvBtn');
+    const tabMarkAttendance = document.getElementById('tabMarkAttendance');
+    const tabSeeAttendance = document.getElementById('tabSeeAttendance');
+    const panelMarkAttendance = document.getElementById('panelMarkAttendance');
+    const panelSeeAttendance = document.getElementById('panelSeeAttendance');
+
+    // Mark Attendance Panel Inputs
+    const adminMarkDate = document.getElementById('adminMarkDate');
+    const adminMarkSubject = document.getElementById('adminMarkSubject');
+    const adminMarkPeriod = document.getElementById('adminMarkPeriod');
+    const adminMarkRegNo = document.getElementById('adminMarkRegNo');
+    const btnCheckStudentStatus = document.getElementById('btnCheckStudentStatus');
+    const markStatusBox = document.getElementById('markStatusBox');
+    const markStudentInfo = document.getElementById('markStudentInfo');
+    const markCurrentStatus = document.getElementById('markCurrentStatus');
+    const btnToggleStudentStatus = document.getElementById('btnToggleStudentStatus');
+
+    // See Attendance Panel Inputs
+    const adminSeeDate = document.getElementById('adminSeeDate');
+    const adminSeeSubject = document.getElementById('adminSeeSubject');
+    const adminSeePeriod = document.getElementById('adminSeePeriod');
+    const btnShowPresentees = document.getElementById('btnShowPresentees');
+    const btnShowAbsentees = document.getElementById('btnShowAbsentees');
+    const queryResultsBox = document.getElementById('queryResultsBox');
 
     // Toast
     const attendanceToast = document.getElementById('attendanceToast');
@@ -315,18 +421,24 @@
     let isCameraOn = false;
     let currentMode = 'scan'; 
     let registeredStudents = []; 
-    let allAttendanceLogs = [];
 
     // Active Session State
-    let activeSession = null; // { subject, period, endMs, isClosed }
-    let activeSessionPresentSet = new Set(); // RegNo
+    let activeSession = null; 
+    let activeSessionPresentSet = new Set();
     let sessionTimerInterval = null;
 
     let faceMatcher = null;
     const ADMIN_PIN = "2000";
     let isAdminAuthenticated = false;
 
+    let checkedStudentRecord = null; // Used for single-student status modification
+
     const CDN_MODELS = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+
+    // Set today's default date in inputs
+    const todayISO = new Date().toISOString().split('T')[0];
+    adminMarkDate.value = todayISO;
+    adminSeeDate.value = todayISO;
 
     function showAttendanceToast(regNo) {
       toastRegNo.innerText = regNo;
@@ -377,7 +489,7 @@
       } else if (mode === 'admin') {
         viewAdmin.classList.remove('hidden');
         navAdmin.className = "px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition bg-blue-600 text-white shadow-lg border border-blue-500 cursor-pointer";
-        renderAdminDashboard();
+        statTotalStudents.innerText = registeredStudents.length;
       }
     }
 
@@ -472,7 +584,7 @@
           faceMatcher = null;
         }
 
-        render7x5MatrixGrid();
+        render10x10MatrixGrid();
       } catch (err) {
         console.error("Error loading students:", err);
       }
@@ -508,7 +620,6 @@
       }
     }
 
-    // AUTOMATIC 15-MINUTE ATTENDANCE START WITH SUBJECT AND PERIOD
     btnOpenSession.addEventListener('click', async () => {
       if (!isAdminAuthenticated) {
         const pin = prompt("Enter Admin PIN to open session:");
@@ -559,13 +670,14 @@
 
       applyClosedSessionUI();
 
+      // AUTOMATICALLY SAVE PRESENT & ABSENTEE RECORDS ON SESSION CLOSURE
+      await autoSaveSessionRecords();
+
       if (manual) {
         alert("Attendance session manually closed.");
       } else {
-        alert("ATTENDANCE CLOSED\nThe 15-minute attendance period has ended.");
+        alert("ATTENDANCE CLOSED\nThe 15-minute period has ended. All unmarked students have been automatically recorded as ABSENT.");
       }
-
-      await autoSaveSessionRecords();
     }
 
     function applyOpenSessionUI() {
@@ -581,7 +693,7 @@
       btnCloseSession.disabled = false;
       btnCloseSession.classList.remove('opacity-40', 'cursor-not-allowed');
 
-      render7x5MatrixGrid();
+      render10x10MatrixGrid();
     }
 
     function applyClosedSessionUI() {
@@ -601,7 +713,7 @@
       btnCloseSession.disabled = true;
       btnCloseSession.classList.add('opacity-40', 'cursor-not-allowed');
 
-      render7x5MatrixGrid();
+      render10x10MatrixGrid();
     }
 
     function startCountdownTimer() {
@@ -638,7 +750,7 @@
     btnResetSession.addEventListener('click', () => {
       if (!confirm("Reset current attendance marks?")) return;
       activeSessionPresentSet.clear();
-      render7x5MatrixGrid();
+      render10x10MatrixGrid();
     });
 
     btnSaveSession.addEventListener('click', async () => {
@@ -646,6 +758,7 @@
       alert("Attendance records saved successfully!");
     });
 
+    // AUTO-SAVE PROCEDURE: AUTOMATICALLY MARKS UNMARKED STUDENTS AS "ABSENT"
     async function autoSaveSessionRecords() {
       if (!activeSession) return;
 
@@ -653,14 +766,18 @@
       btnSaveSession.disabled = true;
 
       try {
+        const todayStr = new Date().toISOString().split('T')[0];
+
         const sessionRef = await addDoc(collection(db, "attendance_sessions"), {
           subject: activeSession.subject,
           period: activeSession.period,
+          dateStr: todayStr,
           totalStudents: registeredStudents.length,
           presentCount: activeSessionPresentSet.size,
           savedAt: serverTimestamp()
         });
 
+        // Save status for every registered student (Present or Absent)
         const promises = registeredStudents.map(student => {
           const isPresent = activeSessionPresentSet.has(student.regNo);
           return addDoc(collection(db, "attendance"), {
@@ -668,6 +785,7 @@
             studentName: student.name,
             subject: activeSession.subject,
             period: activeSession.period,
+            dateStr: todayStr,
             sessionId: sessionRef.id,
             status: isPresent ? "Present" : "Absent",
             timestamp: new Date()
@@ -683,8 +801,8 @@
       }
     }
 
-    // RENDER 7x5 MATRIX GRID
-    function render7x5MatrixGrid() {
+    // RENDER 10x10 MATRIX GRID
+    function render10x10MatrixGrid() {
       studentMatrixGrid.innerHTML = '';
       const isSessionOpen = activeSession && !activeSession.isClosed;
 
@@ -692,7 +810,7 @@
       matrixCount.innerText = activeSessionPresentSet.size;
 
       if (registeredStudents.length === 0) {
-        studentMatrixGrid.innerHTML = `<div class="col-span-7 text-center text-xs text-slate-500 py-12">No registered students found.</div>`;
+        studentMatrixGrid.innerHTML = `<div class="col-span-10 text-center text-xs text-slate-500 py-12">No registered students found.</div>`;
         return;
       }
 
@@ -704,12 +822,12 @@
         if (!isSessionOpen) cell.disabled = true;
 
         cell.className = isPresent
-          ? "h-12 rounded-lg border text-center flex flex-col items-center justify-center transition p-1 bg-emerald-600/30 border-emerald-500 text-emerald-300 shadow-lg cursor-pointer"
-          : "h-12 rounded-lg border text-center flex flex-col items-center justify-center transition p-1 bg-slate-800 border-slate-700 hover:border-blue-500 text-slate-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
+          ? "h-11 rounded border text-center flex flex-col items-center justify-center transition p-0.5 bg-emerald-600/30 border-emerald-500 text-emerald-300 shadow cursor-pointer"
+          : "h-11 rounded border text-center flex flex-col items-center justify-center transition p-0.5 bg-slate-800 border-slate-700 hover:border-blue-500 text-slate-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
 
         cell.innerHTML = `
-          <span class="text-[10px] font-mono font-bold tracking-tight text-slate-200 truncate max-w-full">${student.regNo}</span>
-          <span class="text-xs font-black mt-0.5 ${isPresent ? 'text-emerald-400' : 'text-slate-600'}">${isPresent ? '✓' : '—'}</span>
+          <span class="text-[9px] font-mono font-bold tracking-tighter text-slate-200 truncate w-full px-0.5">${student.regNo}</span>
+          <span class="text-[11px] font-black leading-none ${isPresent ? 'text-emerald-400' : 'text-slate-600'}">${isPresent ? '✓' : '—'}</span>
         `;
 
         studentMatrixGrid.appendChild(cell);
@@ -728,7 +846,7 @@
         showAttendanceToast(regNo);
       }
 
-      render7x5MatrixGrid();
+      render10x10MatrixGrid();
     };
 
     // FACE SCANNER DETECTOR
@@ -769,7 +887,7 @@
 
       activeSessionPresentSet.add(studentRegNo);
       showAttendanceToast(studentRegNo);
-      render7x5MatrixGrid();
+      render10x10MatrixGrid();
     }
 
     // ENROLLMENT
@@ -823,66 +941,183 @@
       registerBtn.disabled = false;
     });
 
-    // ADMIN DASHBOARD
-    async function renderAdminDashboard() {
-      statTotalStudents.innerText = registeredStudents.length;
-      statTodayAttendance.innerText = activeSessionPresentSet.size;
+    // ADMIN DASHBOARD TAB CONTROLS
+    tabMarkAttendance.addEventListener('click', () => {
+      panelMarkAttendance.classList.remove('hidden');
+      panelSeeAttendance.classList.add('hidden');
+      tabMarkAttendance.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-blue-600 text-white border border-blue-500 shadow-md cursor-pointer transition";
+      tabSeeAttendance.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 cursor-pointer transition";
+    });
 
-      try {
-        const querySnapshot = await getDocs(query(collection(db, "attendance"), orderBy("timestamp", "desc")));
-        allAttendanceLogs = [];
-        adminLogList.innerHTML = '';
+    tabSeeAttendance.addEventListener('click', () => {
+      panelSeeAttendance.classList.remove('hidden');
+      panelMarkAttendance.classList.add('hidden');
+      tabSeeAttendance.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-blue-600 text-white border border-blue-500 shadow-md cursor-pointer transition";
+      tabMarkAttendance.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 cursor-pointer transition";
+    });
 
-        querySnapshot.forEach(docSnap => {
-          const data = docSnap.data();
-          const t = data.timestamp ? data.timestamp.toDate() : new Date();
-          allAttendanceLogs.push({
-            regNo: data.studentRegNo,
-            name: data.studentName || 'Student',
-            subject: data.subject || 'Class',
-            period: data.period || '1',
-            status: data.status || 'Present',
-            time: t
-          });
-        });
+    // 1. ADMIN - MANUAL MARK ATTENDANCE LOGIC
+    btnCheckStudentStatus.addEventListener('click', async () => {
+      const dateStr = adminMarkDate.value;
+      const subject = adminMarkSubject.value;
+      const period = adminMarkPeriod.value;
+      const regNo = adminMarkRegNo.value.trim().toUpperCase();
 
-        if (allAttendanceLogs.length > 0) {
-          allAttendanceLogs.forEach(log => {
-            const li = document.createElement('li');
-            li.className = "flex justify-between items-center bg-slate-800 p-2.5 rounded border border-slate-700 text-xs font-mono text-slate-300";
-            li.innerHTML = `
-              <div>
-                <span class="font-bold text-slate-200">${log.regNo}</span>
-                <span class="text-[11px] text-blue-400 font-sans ml-2">(${log.subject} - Period ${log.period})</span>
-              </div>
-              <span class="text-slate-400 text-[11px]">${log.time.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true, month: 'short', day: 'numeric' })}</span>
-            `;
-            adminLogList.appendChild(li);
-          });
-        } else {
-          adminLogList.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">No logs recorded yet.</li>';
-        }
-      } catch (err) {
-        console.error("Error fetching admin logs:", err);
+      if (!dateStr || !regNo) {
+        return alert("Please select a date and enter a valid registration number.");
+      }
+
+      const q = query(
+        collection(db, "attendance"),
+        where("dateStr", "==", dateStr),
+        where("subject", "==", subject),
+        where("period", "==", period),
+        where("studentRegNo", "==", regNo)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const docSnap = querySnapshot.docs[0];
+        checkedStudentRecord = { id: docSnap.id, ...docSnap.data() };
+        renderStatusToggleBox(checkedStudentRecord);
+      } else {
+        // If no record exists for this specific session, create a default local object
+        const targetStudent = registeredStudents.find(s => s.regNo === regNo);
+        checkedStudentRecord = {
+          id: null,
+          studentRegNo: regNo,
+          studentName: targetStudent ? targetStudent.name : "Student",
+          subject: subject,
+          period: period,
+          dateStr: dateStr,
+          status: "Absent" // Default status if not marked yet
+        };
+        renderStatusToggleBox(checkedStudentRecord);
+      }
+    });
+
+    function renderStatusToggleBox(record) {
+      markStatusBox.classList.remove('hidden');
+      markStudentInfo.innerText = `${record.studentRegNo} (${record.studentName})`;
+      
+      const isPresent = record.status === "Present";
+      markCurrentStatus.innerText = record.status;
+      markCurrentStatus.className = isPresent ? "font-bold text-emerald-400" : "font-bold text-rose-400";
+
+      if (isPresent) {
+        btnToggleStudentStatus.innerText = "Mark Absent";
+        btnToggleStudentStatus.className = "bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 text-xs font-bold rounded shadow transition cursor-pointer";
+      } else {
+        btnToggleStudentStatus.innerText = "Mark Present";
+        btnToggleStudentStatus.className = "bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 text-xs font-bold rounded shadow transition cursor-pointer";
       }
     }
 
-    exportCsvBtn.addEventListener('click', () => {
-      if (allAttendanceLogs.length === 0) return alert("No logs available to export.");
+    btnToggleStudentStatus.addEventListener('click', async () => {
+      if (!checkedStudentRecord) return;
 
-      let csvContent = "data:text/csv;charset=utf-8,Registration Number,Name,Subject,Period,Status,Timestamp\n";
-      allAttendanceLogs.forEach(log => {
-        csvContent += `"${log.regNo}","${log.name}","${log.subject}","${log.period}","${log.status}","${log.time.toLocaleString('en-US', { hour12: true })}"\n`;
-      });
+      const newStatus = checkedStudentRecord.status === "Present" ? "Absent" : "Present";
+      btnToggleStudentStatus.disabled = true;
 
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `attendance_export_${new Date().toISOString().split('T')[0]}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      try {
+        if (checkedStudentRecord.id) {
+          // Update existing Firebase document
+          await setDoc(doc(db, "attendance", checkedStudentRecord.id), {
+            status: newStatus,
+            timestamp: new Date()
+          }, { merge: true });
+        } else {
+          // Create new record document
+          const docRef = await addDoc(collection(db, "attendance"), {
+            studentRegNo: checkedStudentRecord.studentRegNo,
+            studentName: checkedStudentRecord.studentName,
+            subject: checkedStudentRecord.subject,
+            period: checkedStudentRecord.period,
+            dateStr: checkedStudentRecord.dateStr,
+            status: newStatus,
+            timestamp: new Date()
+          });
+          checkedStudentRecord.id = docRef.id;
+        }
+
+        checkedStudentRecord.status = newStatus;
+        renderStatusToggleBox(checkedStudentRecord);
+        alert(`Attendance updated to ${newStatus}`);
+      } catch (err) {
+        console.error(err);
+        alert("Failed to update status.");
+      } finally {
+        btnToggleStudentStatus.disabled = false;
+      }
     });
+
+    // 2. ADMIN - SEE ATTENDANCE LOGIC
+    btnShowPresentees.addEventListener('click', () => fetchAndDisplayRecords("Present"));
+    btnShowAbsentees.addEventListener('click', () => fetchAndDisplayRecords("Absent"));
+
+    async function fetchAndDisplayRecords(targetStatus) {
+      const dateStr = adminSeeDate.value;
+      const subject = adminSeeSubject.value;
+      const period = adminSeePeriod.value;
+
+      if (!dateStr) return alert("Please select a valid date.");
+
+      queryResultsBox.innerHTML = `<p class="text-xs text-slate-400 text-center py-8">Fetching records...</p>`;
+
+      try {
+        const q = query(
+          collection(db, "attendance"),
+          where("dateStr", "==", dateStr),
+          where("subject", "==", subject),
+          where("period", "==", period),
+          where("status", "==", targetStatus)
+        );
+
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          queryResultsBox.innerHTML = `
+            <div class="text-center py-8">
+              <span class="text-2xl">⚠️</span>
+              <p class="text-xs font-bold text-amber-400 mt-2">No ${targetStatus} records found for the selected details.</p>
+              <p class="text-[11px] text-slate-500 mt-1">Date: ${dateStr} | Subject: ${subject} | Period: ${period}</p>
+            </div>
+          `;
+          return;
+        }
+
+        let listHtml = `
+          <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-700">
+            <h4 class="text-xs font-bold text-slate-200">${targetStatus} List (${querySnapshot.size})</h4>
+            <span class="text-[10px] text-slate-400 font-mono">${dateStr} | ${subject} (Period ${period})</span>
+          </div>
+          <ul class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+        `;
+
+        querySnapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          listHtml += `
+            <li class="flex justify-between items-center bg-slate-800 p-2.5 rounded border border-slate-700/80 text-xs font-mono">
+              <div>
+                <span class="font-bold text-slate-200">${data.studentRegNo}</span>
+                <span class="text-slate-400 font-sans ml-2">(${data.studentName})</span>
+              </div>
+              <span class="px-2 py-0.5 text-[10px] rounded font-bold ${targetStatus === 'Present' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}">
+                ${data.status}
+              </span>
+            </li>
+          `;
+        });
+
+        listHtml += `</ul>`;
+        queryResultsBox.innerHTML = listHtml;
+
+      } catch (err) {
+        console.error(err);
+        queryResultsBox.innerHTML = `<p class="text-xs text-rose-400 text-center py-8">Error fetching attendance records.</p>`;
+      }
+    }
 
     window.addEventListener('DOMContentLoaded', initApp);
   </script>
