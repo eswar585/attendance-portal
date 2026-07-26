@@ -65,7 +65,7 @@
           <span id="bannerStatusIndicator" class="h-3 w-3 rounded-full bg-rose-500"></span>
           <div>
             <h2 id="bannerTitle" class="text-base md:text-lg font-black tracking-widest text-rose-400 uppercase">ATTENDANCE CLOSED</h2>
-            <p id="bannerSubject" class="text-xs text-slate-300 font-semibold mt-0.5">Subject: Not Selected | Period: —</p>
+            <p id="bannerSubject" class="text-xs text-slate-300 font-semibold mt-0.5">Subject: Select Subject | Period: Select Period</p>
           </div>
         </div>
 
@@ -81,6 +81,7 @@
           <div class="flex items-center gap-2">
             <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">Subject:</label>
             <select id="sessionSubject" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-bold focus:outline-none focus:border-blue-500">
+              <option value="">-- Select Subject --</option>
               <option value="DS">DS</option>
               <option value="SFCDS">SFCDS</option>
               <option value="DMS">DMS</option>
@@ -94,6 +95,7 @@
           <div class="flex items-center gap-2">
             <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">Period:</label>
             <select id="sessionPeriod" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-bold focus:outline-none focus:border-blue-500">
+              <option value="">-- Select Period --</option>
               <option value="1">Period 1</option>
               <option value="2">Period 2</option>
               <option value="3">Period 3</option>
@@ -216,8 +218,9 @@
             <input type="date" id="adminMarkDate" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs w-full text-white">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Subject</label>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Select Subject</label>
             <select id="adminMarkSubject" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs w-full text-white">
+              <option value="">-- Select Subject --</option>
               <option value="DS">DS</option>
               <option value="SFCDS">SFCDS</option>
               <option value="DMS">DMS</option>
@@ -228,8 +231,9 @@
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Period</label>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Select Period</label>
             <select id="adminMarkPeriod" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs w-full text-white">
+              <option value="">-- Select Period --</option>
               <option value="1">Period 1</option>
               <option value="2">Period 2</option>
               <option value="3">Period 3</option>
@@ -274,8 +278,9 @@
             <input type="date" id="adminSeeDate" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs w-full text-white">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Subject</label>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Select Subject</label>
             <select id="adminSeeSubject" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs w-full text-white">
+              <option value="">-- Select Subject --</option>
               <option value="DS">DS</option>
               <option value="SFCDS">SFCDS</option>
               <option value="DMS">DMS</option>
@@ -286,8 +291,9 @@
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Period</label>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Select Period</label>
             <select id="adminSeePeriod" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs w-full text-white">
+              <option value="">-- Select Period --</option>
               <option value="1">Period 1</option>
               <option value="2">Period 2</option>
               <option value="3">Period 3</option>
@@ -300,18 +306,21 @@
           </div>
         </div>
 
-        <div class="flex gap-3 pt-2">
+        <div class="flex flex-wrap gap-3 pt-2">
           <button id="btnShowPresentees" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded transition cursor-pointer">
             Show Presentees
           </button>
           <button id="btnShowAbsentees" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-4 py-2 rounded transition cursor-pointer">
             Show Absentees
           </button>
+          <button id="btnClearAllData" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded transition cursor-pointer ml-auto border border-amber-500">
+            🗑️ Clear All Data
+          </button>
         </div>
 
         <!-- Query Results List Container -->
         <div id="queryResultsBox" class="mt-4 bg-slate-900 rounded-lg p-4 border border-slate-700/80 min-h-[150px]">
-          <p class="text-xs text-slate-500 text-center py-8">Select filters above and click "Show Presentees" or "Show Absentees".</p>
+          <p class="text-xs text-slate-500 text-center py-8">Select date, subject, period, and click one of the options above.</p>
         </div>
       </div>
 
@@ -330,6 +339,7 @@
       doc,
       setDoc,
       getDoc,
+      deleteDoc,
       query, 
       where,
       serverTimestamp 
@@ -410,6 +420,7 @@
     const adminSeePeriod = document.getElementById('adminSeePeriod');
     const btnShowPresentees = document.getElementById('btnShowPresentees');
     const btnShowAbsentees = document.getElementById('btnShowAbsentees');
+    const btnClearAllData = document.getElementById('btnClearAllData');
     const queryResultsBox = document.getElementById('queryResultsBox');
 
     // Toast
@@ -434,11 +445,6 @@
     let checkedStudentRecord = null; // Used for single-student status modification
 
     const CDN_MODELS = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
-
-    // Set today's default date in inputs
-    const todayISO = new Date().toISOString().split('T')[0];
-    adminMarkDate.value = todayISO;
-    adminSeeDate.value = todayISO;
 
     function showAttendanceToast(regNo) {
       toastRegNo.innerText = regNo;
@@ -600,7 +606,7 @@
 
           activeSession = {
             subject: data.subject,
-            period: data.period || "1",
+            period: data.period || "",
             endMs: endMs,
             isClosed: data.isClosed || nowMs >= endMs
           };
@@ -621,14 +627,19 @@
     }
 
     btnOpenSession.addEventListener('click', async () => {
+      const subject = sessionSubject.value;
+      const period = sessionPeriod.value;
+
+      if (!subject || !period) {
+        return alert("Please select a Subject and Period first.");
+      }
+
       if (!isAdminAuthenticated) {
         const pin = prompt("Enter Admin PIN to open session:");
         if (pin !== ADMIN_PIN) return alert("Unauthorized access!");
         isAdminAuthenticated = true;
       }
 
-      const subject = sessionSubject.value;
-      const period = sessionPeriod.value;
       const confirmMsg = `Start 15-minute attendance period for Subject: ${subject} | Period: ${period}?`;
       if (!confirm(confirmMsg)) return;
 
@@ -669,8 +680,6 @@
       }
 
       applyClosedSessionUI();
-
-      // AUTOMATICALLY SAVE PRESENT & ABSENTEE RECORDS ON SESSION CLOSURE
       await autoSaveSessionRecords();
 
       if (manual) {
@@ -685,7 +694,7 @@
       bannerTitle.className = "text-base md:text-lg font-black tracking-widest text-emerald-400 uppercase";
       bannerTitle.innerText = "ATTENDANCE OPEN";
 
-      bannerSubject.innerText = `Subject: ${activeSession.subject} | Period: ${activeSession.period}`;
+      bannerSubject.innerText = `Subject: ${activeSession.subject || 'Select Subject'} | Period: ${activeSession.period || 'Select Period'}`;
 
       btnOpenSession.disabled = true;
       btnOpenSession.classList.add('opacity-40', 'cursor-not-allowed');
@@ -703,7 +712,10 @@
       bannerTitle.className = "text-base md:text-lg font-black tracking-widest text-rose-400 uppercase";
       bannerTitle.innerText = "ATTENDANCE CLOSED";
 
-      bannerSubject.innerText = activeSession ? `Subject: ${activeSession.subject} | Period: ${activeSession.period}` : "Subject: Not Selected | Period: —";
+      bannerSubject.innerText = (activeSession && activeSession.subject) 
+        ? `Subject: ${activeSession.subject} | Period: ${activeSession.period}` 
+        : "Subject: Select Subject | Period: Select Period";
+      
       bannerCountdown.innerText = "00:00";
       bannerCountdown.className = "text-2xl md:text-3xl font-black font-mono text-slate-500 tracking-wider";
 
@@ -758,9 +770,8 @@
       alert("Attendance records saved successfully!");
     });
 
-    // AUTO-SAVE PROCEDURE: AUTOMATICALLY MARKS UNMARKED STUDENTS AS "ABSENT"
     async function autoSaveSessionRecords() {
-      if (!activeSession) return;
+      if (!activeSession || !activeSession.subject || !activeSession.period) return;
 
       btnSaveSession.innerText = "Saving...";
       btnSaveSession.disabled = true;
@@ -777,7 +788,6 @@
           savedAt: serverTimestamp()
         });
 
-        // Save status for every registered student (Present or Absent)
         const promises = registeredStudents.map(student => {
           const isPresent = activeSessionPresentSet.has(student.regNo);
           return addDoc(collection(db, "attendance"), {
@@ -963,8 +973,8 @@
       const period = adminMarkPeriod.value;
       const regNo = adminMarkRegNo.value.trim().toUpperCase();
 
-      if (!dateStr || !regNo) {
-        return alert("Please select a date and enter a valid registration number.");
+      if (!dateStr || !subject || !period || !regNo) {
+        return alert("Please select Date, Subject, Period and enter a valid Registration Number.");
       }
 
       const q = query(
@@ -982,7 +992,6 @@
         checkedStudentRecord = { id: docSnap.id, ...docSnap.data() };
         renderStatusToggleBox(checkedStudentRecord);
       } else {
-        // If no record exists for this specific session, create a default local object
         const targetStudent = registeredStudents.find(s => s.regNo === regNo);
         checkedStudentRecord = {
           id: null,
@@ -991,7 +1000,7 @@
           subject: subject,
           period: period,
           dateStr: dateStr,
-          status: "Absent" // Default status if not marked yet
+          status: "Absent"
         };
         renderStatusToggleBox(checkedStudentRecord);
       }
@@ -1022,13 +1031,11 @@
 
       try {
         if (checkedStudentRecord.id) {
-          // Update existing Firebase document
           await setDoc(doc(db, "attendance", checkedStudentRecord.id), {
             status: newStatus,
             timestamp: new Date()
           }, { merge: true });
         } else {
-          // Create new record document
           const docRef = await addDoc(collection(db, "attendance"), {
             studentRegNo: checkedStudentRecord.studentRegNo,
             studentName: checkedStudentRecord.studentName,
@@ -1061,7 +1068,9 @@
       const subject = adminSeeSubject.value;
       const period = adminSeePeriod.value;
 
-      if (!dateStr) return alert("Please select a valid date.");
+      if (!dateStr || !subject || !period) {
+        return alert("Please select Date, Subject, and Period.");
+      }
 
       queryResultsBox.innerHTML = `<p class="text-xs text-slate-400 text-center py-8">Fetching records...</p>`;
 
@@ -1118,6 +1127,49 @@
         queryResultsBox.innerHTML = `<p class="text-xs text-rose-400 text-center py-8">Error fetching attendance records.</p>`;
       }
     }
+
+    // 3. ADMIN - CLEAR ALL DATA FOR SELECTED SESSION
+    btnClearAllData.addEventListener('click', async () => {
+      const dateStr = adminSeeDate.value;
+      const subject = adminSeeSubject.value;
+      const period = adminSeePeriod.value;
+
+      if (!dateStr || !subject || !period) {
+        return alert("Please select Date, Subject, and Period to clear records.");
+      }
+
+      const confirmMsg = `Are you sure you want to PERMANENTLY DELETE all attendance logs for:\nDate: ${dateStr}\nSubject: ${subject}\nPeriod: ${period}?`;
+      if (!confirm(confirmMsg)) return;
+
+      btnClearAllData.innerText = "Deleting...";
+      btnClearAllData.disabled = true;
+
+      try {
+        const q = query(
+          collection(db, "attendance"),
+          where("dateStr", "==", dateStr),
+          where("subject", "==", subject),
+          where("period", "==", period)
+        );
+
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          alert("No records found to delete for the specified criteria.");
+        } else {
+          const deletePromises = querySnapshot.docs.map(docSnap => deleteDoc(doc(db, "attendance", docSnap.id)));
+          await Promise.all(deletePromises);
+          alert(`Successfully deleted ${querySnapshot.size} attendance records!`);
+          queryResultsBox.innerHTML = `<p class="text-xs text-slate-500 text-center py-8">Records cleared successfully.</p>`;
+        }
+      } catch (err) {
+        console.error("Error clearing data:", err);
+        alert("Failed to delete attendance logs.");
+      } finally {
+        btnClearAllData.innerText = "🗑️ Clear All Data";
+        btnClearAllData.disabled = false;
+      }
+    });
 
     window.addEventListener('DOMContentLoaded', initApp);
   </script>
